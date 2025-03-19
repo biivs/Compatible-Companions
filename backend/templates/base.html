@@ -15,7 +15,7 @@
             </div>
             <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val" onkeyup="filterText()">
+                <input placeholder="Search for a future companion:" id="filter-text-val" onkeyup="filterText()">
             </div>
         </div>
         <div id="answer-box">
@@ -25,12 +25,20 @@
 
     <script>
 
-        function answerBoxTemplate(title,titleDesc,rating){
-            return `<div class=''>
-                <h3 class='episode-title'>${title}</h3>
-                <p class='episode-desc'>${titleDesc}</p>
-                <p class='episode-rating'>IMDB Rating: ${rating}</p>
-            </div>`
+        function answerBoxTemplate(id,name, full_description, type, age, gender, url, imageUrl) {
+            return `<div class='animal-card'>
+                <h3 class='animal-name'>${name}</h3>
+                <img class='animal-image' src="${imageUrl}" alt="Image of ${name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/100';"width="200" height="200">               
+                <p class='animal-description'>${full_description}</p>
+                <p class='animal-type'><strong>Type:</strong> ${type}</p>
+                <p class='animal-age'><strong>Age:</strong> ${age}</p>
+                <p class='animal-gender'><strong>Gender:</strong> ${gender}</p>
+                <p class='animal-status'><strong>More Info:</strong> 
+                    <a href="${url}" target="_blank" rel="noopener noreferrer">Click Here</a>
+                </p>
+                <p>&nbsp;&nbsp;</p>
+                <hr>
+            </div>`;
         }
 
         function sendFocus(){
@@ -40,13 +48,14 @@
         function filterText(){
             document.getElementById("answer-box").innerHTML = ""
             console.log(document.getElementById("filter-text-val").value)
-            fetch("/episodes?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
+            fetch("/animals?" + new URLSearchParams({ query: document.getElementById("filter-text-val").value }).toString())
             .then((response) => response.json())
             .then((data) => data.forEach(row => {
+                let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300"; 
                 
-                let tempDiv = document.createElement("div")
-                tempDiv.innerHTML = answerBoxTemplate(row.title,row.descr,row.imdb_rating)
-                document.getElementById("answer-box").appendChild(tempDiv)
+                let tempDiv = document.createElement("div");
+                tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url);
+                document.getElementById("answer-box").appendChild(tempDiv);
             }));
 
         }
