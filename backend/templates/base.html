@@ -18,25 +18,51 @@
                 <input placeholder="Search for a future companion:" id="filter-text-val" onkeyup="filterText()">
             </div>
         </div>
-        <div id="answer-box">
+        <div class="filters">
+            <select id="gender-filter">
+                <option value="">Any Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
 
+            <select id="type-filter">
+                <option value="">Any Type</option>
+                <option value="Cat">Cat</option>
+                <option value="Dog">Dog</option>
+            </select>
+        
+            <select id="age-filter">
+                <option value="">Any Age</option>
+                <option value="Baby">Baby</option>
+                <option value="Young">Young</option>
+                <option value="Adult">Adult</option>
+                <option value="Senior">Senior</option>
+            </select>
+                    
+        </div>
+        <div id="answer-box">
         </div>
     </div>
 
+    
+
     <script>
 
-        function answerBoxTemplate(id,name, full_description, type, age, gender, url, imageUrl) {
+        function answerBoxTemplate(id,name, full_description, type, age, gender, url, imageUrl, score, distance) {
             return `<div class='animal-card'>
                 <h3 class='animal-name'>${name}</h3>
                 <img class='animal-image' src="${imageUrl}" alt="Image of ${name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/100';"width="200" height="200">               
                 <p class='animal-description'>${full_description}</p>
+                <p class='animal-distance'><strong>Distance:</strong> ${distance ? Math.round(distance) + " miles" : "Unknown"}</p>
                 <p class='animal-type'><strong>Type:</strong> ${type}</p>
                 <p class='animal-age'><strong>Age:</strong> ${age}</p>
                 <p class='animal-gender'><strong>Gender:</strong> ${gender}</p>
+                <p class='animal-gender'><strong>Relevance:</strong> ${score}</p>
                 <p class='animal-status'><strong>More Info:</strong> 
                     <a href="${url}" target="_blank" rel="noopener noreferrer">Click Here</a>
                 </p>
                 <p>&nbsp;&nbsp;</p>
+                
                 <hr>
             </div>`;
         }
@@ -45,19 +71,79 @@
             document.getElementById('filter-text-val').focus()
         }
 
-        function filterText(){
-            document.getElementById("answer-box").innerHTML = ""
-            console.log(document.getElementById("filter-text-val").value)
-            fetch("/animals?" + new URLSearchParams({ query: document.getElementById("filter-text-val").value }).toString())
-            .then((response) => response.json())
-            .then((data) => data.forEach(row => {
-                let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300"; 
-                
-                let tempDiv = document.createElement("div");
-                tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url);
-                document.getElementById("answer-box").appendChild(tempDiv);
-            }));
+        // function filterText(){
 
+        //     // document.getElementById("answer-box").innerHTML = ""
+        //     // console.log(document.getElementById("filter-text-val").value)
+        //     // fetch("/animals?" + new URLSearchParams({ query: document.getElementById("filter-text-val").value }).toString())
+        //     // .then((response) => response.json())
+        //     // .then((data) => data.forEach(row => {
+        //     //     let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300"; 
+                
+        //     //     let tempDiv = document.createElement("div");
+        //     //     tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score);
+        //     //     document.getElementById("answer-box").appendChild(tempDiv);
+        //     // }));
+
+        // }
+        function filterText() {
+            document.getElementById("answer-box").innerHTML = "";
+
+            const query = document.getElementById("filter-text-val").value;
+            const gender = document.getElementById("gender-filter").value;
+            const age = document.getElementById("age-filter").value;
+            const type = document.getElementById("type-filter").value;
+
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                const params = new URLSearchParams({
+                    query,
+                    gender,
+                    age,
+                    type,  // ← include this
+                    user_lat: lat,
+                    user_lon: lon
+                });
+                console.log("Query:", query, "Gender:", gender, "Age:", age, " Type:", type, "Lat:", lat, "Lon:", lon);
+                fetch("/animals?" + params.toString())
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(row => {
+                            let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+                            let tempDiv = document.createElement("div");
+                            tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
+                            document.getElementById("answer-box").appendChild(tempDiv);
+                        });
+                    });
+            }, error => {
+                alert("Location access denied. Showing results without distance filter.");
+                filterTextWithoutLocation(); // fallback
+            });
+        }
+
+        function filterTextWithoutLocation() {
+            const query = document.getElementById("filter-text-val").value;
+            const gender = document.getElementById("gender-filter").value;
+            const age = document.getElementById("age-filter").value;
+            const params = new URLSearchParams({
+                query,
+                gender,
+                age,
+                type
+            });
+
+            fetch("/animals?" + params.toString())
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(row => {
+                        let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+                        let tempDiv = document.createElement("div");
+                        tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score);
+                        document.getElementById("answer-box").appendChild(tempDiv);
+                    });
+                });
         }
             
     </script>
