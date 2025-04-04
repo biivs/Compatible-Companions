@@ -1,150 +1,292 @@
 <!doctype html>
-<title>{% block title %}{% endblock %} - Flaskr</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap" rel="stylesheet">
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}{% endblock %} - Flaskr</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #5C3A2B; /* a very light neutral */
+    }
+    .header {
+      background-color: #5C3A2B; /* deep brown */
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #F5F5DD; /* cream */
+      font-size: 3rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+    .search-container {
+      background-color: #5C3A2B; /* cream */
+      padding: 10px;
+      text-align: center;
+      margin: 20px auto;
+      
+    }
+    .search-container input {
+      width: 90%;
+      max-width: 1000px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: 'Montserrat';
+      font-weight: 100;
+      font-size-adjust:0.6;
+    }
+    .search-container select {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      outline: none;
+      font-family: 'Montserrat';
+        font-weight: 100;
+        font-size-adjust:0.5;
+    }
+    .results-container {
+    display: none;            /* reveal it once results arrive */
+    background-color: #F7F5DC;/* cream background */
+    margin: 20px auto;
+    padding: 30px;
+    justify-content: center;
+    width: 90%;
+    max-width: 1200px;
+    border-radius: 8px;
+    }
+
+/* The flex container for your cards */
+    .results {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; 
+    gap: 20px;                /* spacing between cards */
+    }
+
+    .animal-card {
+    background: #FFF;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    width: 80%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 1000px; 
+    transition: transform 0.3s;
+    }
+
+    .animal-card:hover {
+    transform: scale(1.02);
+    }
+
+    /* Two-column layout using .row and .column */
+    .row {
+    display: flex;
+    flex-wrap: nowrap;  /* No wrapping for a clean two-column layout */
+    }
+
+    .column {
+    flex: 50%;
+    padding: 10px;
+    }
+
+    /* Optional: ensure the image fits its column */
+    .animal-image {
+    width: 100%;
+    border-radius: 5px;
+    }
+
+    .animal-name {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #333;
+    }
+
+    /* .animal-card-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+    }
+
+    .animal-image-container {
+    flex: 0 0 300px; 
+    }
+    .row {
+    display: flex;
+    flex-wrap: wrap;
+    }
+
+    .column {
+    flex: 50%;
+    padding: 10px;
+    }
+
+    .animal-card {
+    background: #FFF;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+    max-width: 600px; 
+    }
+    .animal-card:hover {
+    transform: scale(1.02);
+    }
+    .animal-image {
+    width: 100%;
+    border-radius: 5px;
+    }
+    .animal-name {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #333;
+    }
+    .animal-info p {
+    margin: 5px 0;
+    color: #555;
+    }
+    .animal-status a {
+    color: #5C3A2B;
+    font-weight: bold;
+    text-decoration: none;
+    } */
+.animal-status a:hover {
+  text-decoration: underline;
+}
+  </style>
+</head>
 <body>
-    <div class="full-body-container">
-        <div class="top-text">
-            <div class="google-colors">
-                <h2 id="google-4">Compatible&nbsp;</h2>
-                <h2 id="google-3">Companions</h2>
-                <h1 id="google-0-1"></h1>
-                <h1 id="google-0-2"></h1>
-            </div>
-            <div class="input-box" onclick="sendFocus()">
-                <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Search for a future companion:" id="filter-text-val" onkeyup="filterText()">
-            </div>
-        </div>
-        <div class="filters">
-            <select id="gender-filter">
-                <option value="">Any Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-            </select>
-
-            <select id="type-filter">
-                <option value="">Any Type</option>
-                <option value="Cat">Cat</option>
-                <option value="Dog">Dog</option>
-            </select>
-        
-            <select id="age-filter">
-                <option value="">Any Age</option>
-                <option value="Baby">Baby</option>
-                <option value="Young">Young</option>
-                <option value="Adult">Adult</option>
-                <option value="Senior">Senior</option>
-            </select>
-                    
-        </div>
-        <div id="answer-box">
-        </div>
-    </div>
-
-    
-
-    <script>
-
-        function answerBoxTemplate(id,name, full_description, type, age, gender, url, imageUrl, score, distance) {
-            return `<div class='animal-card'>
-                <h3 class='animal-name'>${name}</h3>
-                <img class='animal-image' src="${imageUrl}" alt="Image of ${name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/100';"width="200" height="200">               
+  <!-- Header Section -->
+  <div class="header">
+    <br><br><br>
+    <h1>Compatible Companions</h1>
+  </div>
+  <!-- Search Controls -->
+  <div class="search-container">
+    <input type="text" id="filter-text-val" placeholder="Search for a future companion..." onkeyup="filterText()">
+    <br>    <br>
+    <select id="gender-filter">
+      <option value="">Any Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+    </select>
+    <select id="type-filter">
+      <option value="">Any Type</option>
+      <option value="Cat">Cat</option>
+      <option value="Dog">Dog</option>
+    </select>
+    <select id="age-filter">
+      <option value="">Any Age</option>
+      <option value="Baby">Baby</option>
+      <option value="Young">Young</option>
+      <option value="Adult">Adult</option>
+      <option value="Senior">Senior</option>
+    </select>
+  </div>
+  
+  <!-- Results Section -->
+  <div class="results-container" id="results-container">
+    <div id="answer-box" class="results"></div>
+  </div>    <!-- Dynamic search results will be appended here -->
+  
+  <script>
+    function answerBoxTemplate(id, name, full_description, type, age, gender, url, imageUrl, score, distance) {
+        return `
+            <div class='animal-card'>
+            <h3 class='animal-name'>${name}</h3>
+            <div class="row">
+                <div class="column">
+                <img class='animal-image' src="${imageUrl}" alt="Image of ${name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300';">
+                </div>
+                <div class="column animal-info">
                 <p class='animal-description'>${full_description}</p>
                 <p class='animal-distance'><strong>Distance:</strong> ${distance ? Math.round(distance) + " miles" : "Unknown"}</p>
                 <p class='animal-type'><strong>Type:</strong> ${type}</p>
                 <p class='animal-age'><strong>Age:</strong> ${age}</p>
                 <p class='animal-gender'><strong>Gender:</strong> ${gender}</p>
-                <p class='animal-gender'><strong>Relevance:</strong> ${score}</p>
+                <p class='animal-relevance'><strong>Relevance:</strong> ${score}</p>
                 <p class='animal-status'><strong>More Info:</strong> 
                     <a href="${url}" target="_blank" rel="noopener noreferrer">Click Here</a>
                 </p>
-                <p>&nbsp;&nbsp;</p>
-                
-                <hr>
+                </div>
+            </div>
             </div>`;
-        }
+    }
 
-        function sendFocus(){
-            document.getElementById('filter-text-val').focus()
-        }
+    function sendFocus(){
+      document.getElementById('filter-text-val').focus();
+    }
 
-        // function filterText(){
+    function filterText() {
+      document.getElementById("answer-box").innerHTML = "";
+      const query = document.getElementById("filter-text-val").value;
+      const gender = document.getElementById("gender-filter").value;
+      const age = document.getElementById("age-filter").value;
+      const type = document.getElementById("type-filter").value;
 
-        //     // document.getElementById("answer-box").innerHTML = ""
-        //     // console.log(document.getElementById("filter-text-val").value)
-        //     // fetch("/animals?" + new URLSearchParams({ query: document.getElementById("filter-text-val").value }).toString())
-        //     // .then((response) => response.json())
-        //     // .then((data) => data.forEach(row => {
-        //     //     let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300"; 
-                
-        //     //     let tempDiv = document.createElement("div");
-        //     //     tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score);
-        //     //     document.getElementById("answer-box").appendChild(tempDiv);
-        //     // }));
+      navigator.geolocation.getCurrentPosition(position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const params = new URLSearchParams({
+              query,
+              gender,
+              age,
+              type, 
+              user_lat: lat,
+              user_lon: lon
+          });
+          console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type, "Lat:", lat, "Lon:", lon);
+          fetch("/animals?" + params.toString())
+              .then(response => response.json())
+              .then(data => {
+                  if (data.length > 0) {
+                    // Reveal the cream container
+                    document.getElementById("results-container").style.display = "block";
+                  }
+                  data.forEach(row => {
+                    let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+                    let tempDiv = document.createElement("div");
+                    tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
+                    document.getElementById("answer-box").appendChild(tempDiv);
+                  });
+              });
+      }, error => {
+          alert("Location access denied. Showing results without distance filter.");
+          filterTextWithoutLocation(); // fallback
+      });
+    }
 
-        // }
-        function filterText() {
-            document.getElementById("answer-box").innerHTML = "";
-
-            const query = document.getElementById("filter-text-val").value;
-            const gender = document.getElementById("gender-filter").value;
-            const age = document.getElementById("age-filter").value;
-            const type = document.getElementById("type-filter").value;
-
-            navigator.geolocation.getCurrentPosition(position => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-
-                const params = new URLSearchParams({
-                    query,
-                    gender,
-                    age,
-                    type,  // ← include this
-                    user_lat: lat,
-                    user_lon: lon
-                });
-                console.log("Query:", query, "Gender:", gender, "Age:", age, " Type:", type, "Lat:", lat, "Lon:", lon);
-                fetch("/animals?" + params.toString())
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(row => {
-                            let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-                            let tempDiv = document.createElement("div");
-                            tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
-                            document.getElementById("answer-box").appendChild(tempDiv);
-                        });
-                    });
-            }, error => {
-                alert("Location access denied. Showing results without distance filter.");
-                filterTextWithoutLocation(); // fallback
-            });
-        }
-
-        function filterTextWithoutLocation() {
-            const query = document.getElementById("filter-text-val").value;
-            const gender = document.getElementById("gender-filter").value;
-            const age = document.getElementById("age-filter").value;
-            const params = new URLSearchParams({
-                query,
-                gender,
-                age,
-                type
-            });
-
-            fetch("/animals?" + params.toString())
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(row => {
-                        let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-                        let tempDiv = document.createElement("div");
-                        tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score);
-                        document.getElementById("answer-box").appendChild(tempDiv);
-                    });
-                });
-        }
-            
-    </script>
+    function filterTextWithoutLocation() {
+      const query = document.getElementById("filter-text-val").value;
+      const gender = document.getElementById("gender-filter").value;
+      const age = document.getElementById("age-filter").value;
+      const type = document.getElementById("type-filter").value;
+      const params = new URLSearchParams({
+          query,
+          gender,
+          age,
+          type
+      });
+      fetch("/animals?" + params.toString())
+          .then(response => response.json())
+          .then(data => {
+              data.forEach(row => {
+                  let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+                  let tempDiv = document.createElement("div");
+                  tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
+                  document.getElementById("answer-box").appendChild(tempDiv);
+              });
+          });
+    }
+  </script>
 </body>
+</html>
