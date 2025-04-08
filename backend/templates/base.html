@@ -261,7 +261,7 @@
               });
       }, error => {
           alert("Location access denied. Showing results without distance filter.");
-          filterTextWithoutLocation(); // fallback
+          filterTextWithoutLocation();
       });
     }
 
@@ -276,16 +276,20 @@
           age,
           type
       });
+      console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type);
       fetch("/animals?" + params.toString())
-          .then(response => response.json())
-          .then(data => {
-              data.forEach(row => {
-                  let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-                  let tempDiv = document.createElement("div");
-                  tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
-                  document.getElementById("answer-box").appendChild(tempDiv);
+              .then(response => response.json())
+              .then(data => {
+                  if (data.length > 0) {
+                    document.getElementById("results-container").style.display = "block";
+                  }
+                  data.forEach(row => {
+                    let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+                    let tempDiv = document.createElement("div");
+                    tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
+                    document.getElementById("answer-box").appendChild(tempDiv);
+                  });
               });
-          });
     }
   </script>
 </body>
