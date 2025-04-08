@@ -198,6 +198,7 @@
   </div>    <!-- Dynamic search results will be appended here -->
   
   <script>
+    let locationDeniedAlertShown = false;
     function answerBoxTemplate(id, name, full_description, type, age, gender, url, imageUrl, score, distance) {
         return `
             <div class='animal-card'>
@@ -259,7 +260,10 @@
                   });
               });
       }, error => {
-          alert("Location access denied. Showing results without distance filter.");
+          if (error.code === error.PERMISSION_DENIED && !locationDeniedAlertShown) {
+        alert("Location access denied, now searching without location.");
+        locationDeniedAlertShown = true;
+      }
           filterTextWithoutLocation();
       });
     }
