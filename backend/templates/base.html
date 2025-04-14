@@ -57,7 +57,7 @@
       outline: none;
       width: 200px;
       max-width: 90%;
-    }
+
 
     .search-container input {
       width: 60%;
@@ -247,6 +247,34 @@
               document.getElementById("answer-box").appendChild(tempDiv);
             });
           });
+        console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type, "Lat:", lat, "Lon:", lon);
+        fetch("/animals?" + params.toString())
+          .then(response => response.json())
+          .then(data => {
+            if (data.length > 0) {
+              // Reveal the cream container
+              document.getElementById("results-container").style.display = "block";
+            }
+            data.forEach(row => {
+              let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+              let tempDiv = document.createElement("div");
+              tempDiv.innerHTML = answerBoxTemplate(
+                row.id,
+                row.name,
+                row.full_description,
+                row.type,
+                row.age,
+                row.gender,
+                row.url,
+                row.image_url,
+                row.score,
+                row.distance,
+                document.getElementById("filter-text-val").value // Pass the search query
+              );
+              document.getElementById("answer-box").appendChild(tempDiv);
+            });
+
+          });
       }, error => {
         if (error.code === error.PERMISSION_DENIED && !locationDeniedAlertShown) {
           alert("Location access denied, now searching without location.");
@@ -280,6 +308,29 @@
             document.getElementById("answer-box").appendChild(tempDiv);
           });
         });
+
+    }
+
+    function toggleChart(petId, query) {
+      const container = document.getElementById(`chart-container-${petId}`);
+      if (container.style.display === 'none') {
+        loadSimilarityChart(petId, query);
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    function loadSimilarityChart(petId, query) {
+      const container = document.getElementById(`chart-container-${petId}`);
+      if (container.innerHTML.trim() === '') {
+        fetch(`/similarity_chart?id=${petId}&query=${encodeURIComponent(query)}`)
+          .then(response => response.text())
+          .then(html => {
+            container.innerHTML = html;
+          });
+      }
+
     }
   </script>
 </body>
