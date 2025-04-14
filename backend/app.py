@@ -53,6 +53,9 @@ with open(json_file_path, 'r') as file:
 
 animals_df = pd.DataFrame(data)
 
+del data
+gc.collect()
+
 # Initialize TF-IDF Vectorizer and SentenceTransformer
 tfidf_vectorizer = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf_vectorizer.fit_transform(animals_df['full_description'].fillna(""))
