@@ -27,3 +27,4 @@ Werkzeug==2.2.2
 scikit-learn
 sentence-transformers
 uszipcode
+matplotlib
