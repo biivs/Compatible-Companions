@@ -22,16 +22,20 @@
     }
 
     .header h1 {
-      font-family: 'Kristen ITC', 'Comic Sans MS', cursive, sans-serif;
+      font-family: 'Kristen ITC';
       color: #FFF4E3;
-      font-size: 4.5rem;
+      font-size: 3rem;
       text-transform: uppercase;
       letter-spacing: 2px;
       margin: 0;
     }
 
     .header h1::after {
-      content: ' 🐶';
+      content: ' 🐶 ';
+    }
+
+    .header h1::before {
+      content: ' 🐱 ';
     }
 
     .search-container {
@@ -98,8 +102,8 @@
     }
 
     .animal-image {
-      width: 500px;
-      height: 500px;
+      width: 600px;
+      height: 800px;
       object-fit: cover;
       border-radius: 20px 0 0 20px;
     }
@@ -158,7 +162,7 @@
 
   <!-- Search Controls -->
   <div class="search-container">
-    <input type="text" id="filter-text-val" placeholder="Search for a future companion..." onkeyup="filterText()">
+    <input type="text" id="filter-text-val" placeholder="Search for a future companion...🐾 " onkeyup="filterText()">
     <br><br>
     <select id="gender-filter">
       <option value="">Any Gender</option>
