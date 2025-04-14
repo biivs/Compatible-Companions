@@ -1,13 +1,23 @@
 import json
 import os
-from flask import Flask, render_template, request, jsonify
+import re
+from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
+from sklearn.decomposition import TruncatedSVD
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import io
+import base64
 
 from uszipcode import SearchEngine
 from math import radians, sin, cos, sqrt, atan2
@@ -46,6 +56,11 @@ animals_df = pd.DataFrame(data)
 # Initialize TF-IDF Vectorizer and SentenceTransformer
 tfidf_vectorizer = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf_vectorizer.fit_transform(animals_df['full_description'].fillna(""))
+
+# svd
+n_components = 100  # Number of dimensions to reduce to
+svd = TruncatedSVD(n_components=n_components, random_state=42)
+lsa_matrix = svd.fit_transform(tfidf_matrix)
 
 # Precompute semantic embeddings for all descriptions
 semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -88,22 +103,23 @@ CORS(app)
 def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, user_lon=None):
     query = query.lower()
 
-    # Similarity Scores
     query_vec = tfidf_vectorizer.transform([query])
     tfidf_sim = cosine_similarity(query_vec, tfidf_matrix).flatten()
-
+    query_lsa = svd.transform(query_vec)
+    lsa_sim = cosine_similarity(query_lsa, lsa_matrix).flatten()
     query_embedding = semantic_model.encode([query], convert_to_tensor=True)
     semantic_sim = cosine_similarity(query_embedding.cpu().numpy(), semantic_embeddings.cpu().numpy()).flatten()
 
-    combined_score = 0.5 * semantic_sim + 0.5 * tfidf_sim
-    animals_df['score'] = combined_score
+    # Add individual scores to DataFrame
+    animals_df['tfidf_score'] = tfidf_sim
+    animals_df['lsa_score'] = lsa_sim
+    animals_df['semantic_score'] = semantic_sim
+    animals_df['score'] = 0.4 * semantic_sim + 0.3 * tfidf_sim + 0.3 * lsa_sim
 
-    #penalty for empty description
     penalty = 0.3
     animals_df.loc[animals_df['full_description'].isnull(), 'score'] -= penalty
-    animals_df['score'] = animals_df['score'].clip(lower=0)  # Avoid negative scores
+    animals_df['score'] = animals_df['score'].clip(lower=0)
 
-    # Filter and sort
     matches = animals_df[animals_df['score'] > 0.1].copy()
 
     if gender:
@@ -133,13 +149,13 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
         matches['distance'] = None
         matches = matches.sort_values(by='score', ascending=False)
 
-    # Image fallback
     matches['image_url'] = matches['photos'].apply(
         lambda x: x[0]['small'] if isinstance(x, list) and x else "https://via.placeholder.com/300"
     )
 
     return matches[['id', 'name', 'url', 'type', 'species', 'age', 'gender', 'status',
-                    'image_url', 'full_description', 'score', 'distance']].to_json(orient='records')
+                    'image_url', 'full_description', 'score', 'tfidf_score', 'lsa_score', 'semantic_score', 'distance']].to_json(orient='records')
+
 @app.route("/")
 def home():
     return render_template('base.html', title="Sample HTML")
@@ -165,5 +181,57 @@ def animals_search():
 
     return json_search(query, gender, age, type_,user_lat, user_lon)
 
+@app.route("/similarity_chart")
+def similarity_chart():
+    animal_id = request.args.get("id")
+    query = request.args.get("query", "")
+
+    if not animal_id or not query:
+        return jsonify({"error": "Both id and query parameters are required"}), 400
+
+    try:
+        animal = animals_df[animals_df['id'] == int(animal_id)].iloc[0]
+    except IndexError:
+        return jsonify({"error": "Animal not found"}), 404
+
+    all_traits = ['playful', 'calm', 'affectionate', 'energetic', 'friendly', 'gentle', 'independent']
+    query = query.lower()
+    traits_in_query = [trait for trait in all_traits if trait in query]
+
+    if not traits_in_query:
+        traits_in_query = ['playful', 'calm', 'friendly']  # default fallback traits
+
+    animal_text = (animal['full_description'] or "").lower()
+
+    def score_trait(trait):
+        return 1.0 if re.search(rf"\b{re.escape(trait)}\b", animal_text) else 0.1  # crude scoring
+
+    trait_scores = [score_trait(trait) for trait in traits_in_query]
+
+    N = len(traits_in_query)
+    angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+    trait_scores += trait_scores[:1]
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    ax.plot(angles, trait_scores, color='#FF7043', linewidth=2, marker='o')
+    ax.fill(angles, trait_scores, color='#FF7043', alpha=0.25)
+
+    ax.set_theta_offset(np.pi / 2)
+    ax.set_theta_direction(-1)
+
+    ax.set_thetagrids(np.degrees(angles[:-1]), traits_in_query, fontsize=10)
+    ax.set_ylim(0, 1)
+    ax.set_yticks([0.2, 0.4, 0.6, 0.8])
+    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8"], color="grey", fontsize=8)
+    ax.grid(True, linestyle='--', color='gray', alpha=0.3)
+    ax.set_title(f"Trait Match for: {animal['name']}", y=1.1, fontsize=14)
+    
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=120, bbox_inches='tight', facecolor='white')
+    plt.close()
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+
 if 'DB_NAME' not in os.environ:
-    app.run(debug=True,host="0.0.0.0",port=5000)
+    app.run(debug=True,host="0.0.0.0",port=5001)
