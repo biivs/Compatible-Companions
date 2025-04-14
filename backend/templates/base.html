@@ -1,200 +1,169 @@
 <!doctype html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}{% endblock %} - Flaskr</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       font-family: 'Montserrat', sans-serif;
-      background-color: #5C3A2B; /* a very light neutral */
+      background-color: #4D3C3C;
+      color: #333;
     }
+
     .header {
-      background-color: #5C3A2B; /* deep brown */
-      padding: 40px 20px;
+      background-color: #4D3C3C;
+      padding: 60px 20px 40px;
       text-align: center;
     }
+
     .header h1 {
-      color: #F5F5DD; /* cream */
+      font-family: 'Kristen ITC';
+      color: #FFF4E3;
       font-size: 3rem;
-      letter-spacing: 2px;
       text-transform: uppercase;
+      letter-spacing: 2px;
       margin: 0;
     }
+
+    .header h1::after {
+      content: ' 🐶 ';
+    }
+
+    .header h1::before {
+      content: ' 🐱 ';
+    }
+
     .search-container {
-      background-color: #5C3A2B; /* cream */
-      padding: 10px;
+      background-color: #FFF9F1;
+      padding: 20px;
       text-align: center;
-      margin: 20px auto;
-      
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid #E0DDD8;
     }
-    .search-container input {
-      width: 90%;
-      max-width: 1000px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-family: 'Montserrat';
-      font-weight: 100;
-      font-size-adjust:0.6;
-    }
+
+    .search-container input,
     .search-container select {
-      padding: 10px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1rem;
+      padding: 10px 15px;
       margin: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      border: 1px solid #CCC;
+      border-radius: 8px;
       outline: none;
-      font-family: 'Montserrat';
-        font-weight: 100;
-        font-size-adjust:0.5;
+      width: 200px;
+      max-width: 90%;
     }
+
+    .search-container input {
+      width: 60%;
+      max-width: 600px;
+    }
+
     .results-container {
-    display: none;            /* reveal it once results arrive */
-    background-color: #F7F5DC;/* cream background */
-    margin: 20px auto;
-    padding: 30px;
-    justify-content: center;
-    width: 90%;
-    max-width: 1200px;
-    border-radius: 8px;
+      display: none;
+      background-color: #FFFDF8;
+      margin: 30px auto;
+      padding: 40px;
+      width: 90%;
+      max-width: 1200px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      text-align: center;
     }
 
-/* The flex container for your cards */
     .results {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center; 
-    gap: 20px;                /* spacing between cards */
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
     }
 
     .animal-card {
-    background: #FFF;
-    margin: 10px;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    max-width: 1000px; 
-    transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      background: #FFFFFF;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 1000px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
 
     .animal-card:hover {
-    transform: scale(1.02);
+      transform: scale(1.015);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
 
-    /* Two-column layout using .row and .column */
-    .row {
-    display: flex;
-    flex-wrap: nowrap;  /* No wrapping for a clean two-column layout */
+    .animal-image {
+      width: 600px;
+      height: 800px;
+      object-fit: cover;
+      border-radius: 20px 0 0 20px;
     }
 
     .column {
-    flex: 50%;
-    padding: 10px;
-    }
-
-    /* Optional: ensure the image fits its column */
-    .animal-image {
-    width: 100%;
-    border-radius: 5px;
+      flex: 1;
+      padding: 20px;
+      text-align: left;
     }
 
     .animal-name {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    color: #333;
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #4D3C3C;
     }
 
-    /* .animal-card-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: flex-start;
-    }
-
-    .animal-image-container {
-    flex: 0 0 300px; 
-    }
-    .row {
-    display: flex;
-    flex-wrap: wrap;
-    }
-
-    .column {
-    flex: 50%;
-    padding: 10px;
-    }
-
-    .animal-card {
-    background: #FFF;
-    margin: 10px;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
-    max-width: 600px; 
-    }
-    .animal-card:hover {
-    transform: scale(1.02);
-    }
-    .animal-image {
-    width: 100%;
-    border-radius: 5px;
-    }
-    .animal-name {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    color: #333;
-    }
     .animal-info p {
-    margin: 5px 0;
-    color: #555;
+      margin: 8px 0;
+      line-height: 1.4;
+      font-size: 1rem;
+      color: #555;
     }
+
     .animal-status a {
-    color: #5C3A2B;
-    font-weight: bold;
-    text-decoration: none;
-    } */
-.animal-status a:hover {
-  text-decoration: underline;
-}
-.similarity-chart-container {
-  margin: 20px 0;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-align: center;
-}
-    
-.similarity-chart {
-  max-width: 100%;
-  height: auto;
-  max-height: 300px;
-  display: block;
-  margin: 0 auto;
-}
-    
-.animal-relevance {
-  color: #5C3A2B;
-  font-weight: bold;
-}
-</style>
-  
+      color: #C1674A;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .animal-status a:hover {
+      text-decoration: underline;
+
+      .image-fallback {
+        width: 300px;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #888;
+        background-color: #f2f2f2;
+        text-align: center;
+        border-radius: 10px 0 0 10px;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <!-- Header Section -->
   <div class="header">
     <br><br><br>
     <h1>Compatible Companions</h1>
   </div>
+
   <!-- Search Controls -->
   <div class="search-container">
-    <input type="text" id="filter-text-val" placeholder="Search for a future companion..." onkeyup="filterText()">
-    <br>    <br>
+    <input type="text" id="filter-text-val" placeholder="Search for a future companion...🐾 " onkeyup="filterText()">
+    <br><br>
     <select id="gender-filter">
       <option value="">Any Gender</option>
       <option value="Male">Male</option>
@@ -213,16 +182,16 @@
       <option value="Senior">Senior</option>
     </select>
   </div>
-  
+
   <!-- Results Section -->
   <div class="results-container" id="results-container">
     <div id="answer-box" class="results"></div>
-  </div>    <!-- Dynamic search results will be appended here -->
-  
+  </div>
+
   <script>
     let locationDeniedAlertShown = false;
     function answerBoxTemplate(id, name, full_description, type, age, gender, url, imageUrl, score, distance, query) {
-    return `
+      return `
         <div class='animal-card'>
             <h3 class='animal-name'>${name}</h3>
             <div class="row">
@@ -247,10 +216,31 @@
                      alt="Similarity analysis for ${name}">
             </div>
         </div>`;
-}
+    }
 
-    function sendFocus(){
-      document.getElementById('filter-text-val').focus();
+    function answerBoxTemplate(id, name, full_description, type, age, gender, url, imageUrl, score, distance) {
+      const imageTag = `
+        <img class='animal-image' src="${imageUrl}" alt="Image of ${name}"
+        onerror="this.outerHTML='<div class=\\'image-fallback\\'>Sorry, image is not available!</div>';">`;
+
+      return `
+      <div class='animal-card'>
+        ${imageTag}
+        <div class="column">
+          <h3 class='animal-name'>${name}</h3>
+          <div class="animal-info">
+            <p>${full_description}</p>
+            <p><strong>Distance:</strong> ${distance ? Math.round(distance) + " miles" : "Unknown"}</p>
+            <p><strong>Type:</strong> ${type}</p>
+            <p><strong>Age:</strong> ${age}</p>
+            <p><strong>Gender:</strong> ${gender}</p>
+            <p><strong>Relevance:</strong> ${score}</p>
+            <p class='animal-status'><strong>More Info:</strong> 
+              <a href="${url}" target="_blank" rel="noopener noreferrer">Click Here</a>
+            </p>
+          </div>
+        </div>
+      </div>`;
     }
 
     function filterText() {
@@ -261,49 +251,62 @@
       const type = document.getElementById("type-filter").value;
 
       navigator.geolocation.getCurrentPosition(position => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          const params = new URLSearchParams({
-              query,
-              gender,
-              age,
-              type, 
-              user_lat: lat,
-              user_lon: lon
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const params = new URLSearchParams({
+          query,
+          gender,
+          age,
+          type,
+          user_lat: lat,
+          user_lon: lon
+        });
+        fetch("/animals?" + params.toString())
+          .then(response => response.json())
+          .then(data => {
+            if (data.length > 0) {
+              document.getElementById("results-container").style.display = "block";
+            }
+            data.forEach(row => {
+              let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+              let tempDiv = document.createElement("div");
+              tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
+              document.getElementById("answer-box").appendChild(tempDiv);
+            });
           });
-          console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type, "Lat:", lat, "Lon:", lon);
-          fetch("/animals?" + params.toString())
-              .then(response => response.json())
-              .then(data => {
-                  if (data.length > 0) {
-                    // Reveal the cream container
-                    document.getElementById("results-container").style.display = "block";
-                  }
-                  data.forEach(row => {
-    let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-    let tempDiv = document.createElement("div");
-    tempDiv.innerHTML = answerBoxTemplate(
-        row.id, 
-        row.name, 
-        row.full_description, 
-        row.type, 
-        row.age, 
-        row.gender, 
-        row.url, 
-        row.image_url, 
-        row.score, 
-        row.distance,
-        document.getElementById("filter-text-val").value // Pass the search query
-    );
-    document.getElementById("answer-box").appendChild(tempDiv);
-});
-              });
+        console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type, "Lat:", lat, "Lon:", lon);
+        fetch("/animals?" + params.toString())
+          .then(response => response.json())
+          .then(data => {
+            if (data.length > 0) {
+              // Reveal the cream container
+              document.getElementById("results-container").style.display = "block";
+            }
+            data.forEach(row => {
+              let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+              let tempDiv = document.createElement("div");
+              tempDiv.innerHTML = answerBoxTemplate(
+                row.id,
+                row.name,
+                row.full_description,
+                row.type,
+                row.age,
+                row.gender,
+                row.url,
+                row.image_url,
+                row.score,
+                row.distance,
+                document.getElementById("filter-text-val").value // Pass the search query
+              );
+              document.getElementById("answer-box").appendChild(tempDiv);
+            });
+          });
       }, error => {
-          if (error.code === error.PERMISSION_DENIED && !locationDeniedAlertShown) {
-        alert("Location access denied, now searching without location.");
-        locationDeniedAlertShown = true;
-      }
-          filterTextWithoutLocation();
+        if (error.code === error.PERMISSION_DENIED && !locationDeniedAlertShown) {
+          alert("Location access denied, now searching without location.");
+          locationDeniedAlertShown = true;
+        }
+        filterTextWithoutLocation();
       });
     }
 
@@ -313,59 +316,47 @@
       const age = document.getElementById("age-filter").value;
       const type = document.getElementById("type-filter").value;
       const params = new URLSearchParams({
-          query,
-          gender,
-          age,
-          type
+        query,
+        gender,
+        age,
+        type
       });
-      console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type);
       fetch("/animals?" + params.toString())
-              .then(response => response.json())
-              .then(data => {
-                  if (data.length > 0) {
-                    document.getElementById("results-container").style.display = "block";
-                  }
-                  data.forEach(row => {
-    let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-    let tempDiv = document.createElement("div");
-    tempDiv.innerHTML = answerBoxTemplate(
-        row.id, 
-        row.name, 
-        row.full_description, 
-        row.type, 
-        row.age, 
-        row.gender, 
-        row.url, 
-        row.image_url, 
-        row.score, 
-        row.distance,
-        document.getElementById("filter-text-val").value // Pass the search query
-    );
-    document.getElementById("answer-box").appendChild(tempDiv);
-});
-              });
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            document.getElementById("results-container").style.display = "block";
+          }
+          data.forEach(row => {
+            let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+            let tempDiv = document.createElement("div");
+            tempDiv.innerHTML = answerBoxTemplate(row.id, row.name, row.full_description, row.type, row.age, row.gender, row.url, row.image_url, row.score, row.distance);
+            document.getElementById("answer-box").appendChild(tempDiv);
+          });
+        });
     }
 
-function toggleChart(petId, query) {
-    const container = document.getElementById(`chart-container-${petId}`);
-    if (container.style.display === 'none') {
+    function toggleChart(petId, query) {
+      const container = document.getElementById(`chart-container-${petId}`);
+      if (container.style.display === 'none') {
         loadSimilarityChart(petId, query);
         container.style.display = 'block';
-    } else {
+      } else {
         container.style.display = 'none';
+      }
     }
-}
 
-function loadSimilarityChart(petId, query) {
-    const container = document.getElementById(`chart-container-${petId}`);
-    if (container.innerHTML.trim() === '') {
+    function loadSimilarityChart(petId, query) {
+      const container = document.getElementById(`chart-container-${petId}`);
+      if (container.innerHTML.trim() === '') {
         fetch(`/similarity_chart?id=${petId}&query=${encodeURIComponent(query)}`)
-            .then(response => response.text())
-            .then(html => {
-                container.innerHTML = html;
-            });
+          .then(response => response.text())
+          .then(html => {
+            container.innerHTML = html;
+          });
+      }
     }
-}
   </script>
 </body>
+
 </html>
