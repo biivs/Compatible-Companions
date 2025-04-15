@@ -120,6 +120,9 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
     animals_df['semantic_score'] = semantic_sim
     animals_df['score'] = 0.4 * semantic_sim + 0.3 * tfidf_sim + 0.3 * lsa_sim
 
+    del tfidf_sim, lsa_sim, query_vec, query_lsa
+    gc.collect()
+    
     penalty = 0.3
     animals_df.loc[animals_df['full_description'].isnull(), 'score'] -= penalty
     animals_df['score'] = animals_df['score'].clip(lower=0)
