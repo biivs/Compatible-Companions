@@ -179,12 +179,18 @@ def animals_search():
     type_ = request.args.get("type", "")
     user_lat = request.args.get("user_lat")
     user_lon = request.args.get("user_lon")
+    start = int(request.args.get("start", 0))
+    limit = int(request.args.get("limit", 20))
 
     if not query:
         return jsonify({"error": "Query parameter is required"}), 400
 
-    return json_search(query, gender, age, type_,user_lat, user_lon)
-
+    results_json = json.loads(json_search(query, gender, age, type_, user_lat, user_lon))
+    paginated = results_json[start:start + limit]
+    return jsonify({
+        "results": paginated,
+        "total": len(results_json)
+    })
 @app.route("/similarity_chart")
 def similarity_chart():
     animal_id = request.args.get("id")
