@@ -1,5 +1,4 @@
 import json
-import gc
 import os
 import re
 from flask import Flask, render_template, request, jsonify, send_file
@@ -22,6 +21,7 @@ import base64
 
 from uszipcode import SearchEngine
 from math import radians, sin, cos, sqrt, atan2
+import gc
 
 def get_coords_from_zip(zip_code):
     search = SearchEngine() 
