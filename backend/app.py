@@ -24,7 +24,7 @@ from uszipcode import SearchEngine
 from math import radians, sin, cos, sqrt, atan2
 
 def get_coords_from_zip(zip_code):
-    search = SearchEngine() 
+    search = SearchEngine(simple_zipcode=True)
     result = search.by_zipcode(zip_code)
     if result:
         return result.lat, result.lng
