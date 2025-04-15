@@ -1,4 +1,5 @@
 import json
+import gc
 import os
 import re
 from flask import Flask, render_template, request, jsonify, send_file
@@ -53,6 +54,9 @@ with open(json_file_path, 'r') as file:
 
 animals_df = pd.DataFrame(data)
 
+del data
+gc.collect()
+
 # Initialize TF-IDF Vectorizer and SentenceTransformer
 tfidf_vectorizer = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf_vectorizer.fit_transform(animals_df['full_description'].fillna(""))
@@ -75,7 +79,7 @@ CORS(app)
 # # Sample search using json with pandas
 # def json_search(query):
 #     query = query.lower()
-    
+
 #     # --- TF-IDF Similarity ---
 #     query_vec = tfidf_vectorizer.transform([query])
 #     tfidf_sim = cosine_similarity(query_vec, tfidf_matrix).flatten()
@@ -226,7 +230,7 @@ def similarity_chart():
     ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8"], color="grey", fontsize=8)
     ax.grid(True, linestyle='--', color='gray', alpha=0.3)
     ax.set_title(f"Trait Match for: {animal['name']}", y=1.1, fontsize=14)
-    
+
     buf = io.BytesIO()
     plt.savefig(buf, format='png', dpi=120, bbox_inches='tight', facecolor='white')
     plt.close()
