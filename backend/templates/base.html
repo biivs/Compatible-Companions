@@ -130,56 +130,6 @@
       color: #4D3C3C;
     }
 
-    /* .animal-card-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: flex-start;
-    }
-
-    .animal-image-container {
-    flex: 0 0 300px; 
-    }
-    .row {
-    display: flex;
-    flex-wrap: wrap;
-    }
-
-    .column {
-    flex: 50%;
-    padding: 10px;
-    }
-
-    .animal-card {
-    background: #FFF;
-    margin: 10px;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
-    max-width: 600px; 
-    }
-    .animal-card:hover {
-    transform: scale(1.02);
-    }
-    .animal-image {
-    width: 100%;
-    border-radius: 5px;
-    }
-    .animal-name {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    color: #333;
-    }
-    .animal-info p {
-    margin: 5px 0;
-    color: #555;
-    }
-    .animal-status a {
-    color: #5C3A2B;
-    font-weight: bold;
-    text-decoration: none;
-    } */
     .animal-status a:hover {
       text-decoration: underline;
     }
@@ -205,6 +155,36 @@
       color: #5C3A2B;
       font-weight: bold;
     }
+
+    .pagination-wrapper {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .page-button {
+      margin: 2px;
+      padding: 5px 12px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4D3C3C;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .page-button:hover {
+      background-color: #6E4D4D;
+    }
+
+    .page-button.active {
+      background-color: #FFFDF8;
+      color: #4D3C3C;
+      font-weight: bold;
+      border: 2px solid #4D3C3C;
+    }
+
   </style>
 
 </head>
@@ -241,9 +221,11 @@
   <!-- Results Section -->
   <div class="results-container" id="results-container">
     <div id="answer-box" class="results"></div>
+    <div id="pagination-controls" class="pagination-wrapper"></div>
   </div> <!-- Dynamic search results will be appended here -->
 
   <script>
+    let totalResults = 0;
     let currentPage = 1;
     const resultsPerPage = 20;
     let fullResults = [];
@@ -296,23 +278,21 @@
           age,
           type,
           user_lat: lat,
-          user_lon: lon
+          user_lon: lon,
+          start: (currentPage - 1) * resultsPerPage,
+          limit: resultsPerPage
         });
         console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type, "Lat:", lat, "Lon:", lon);
         fetch("/animals?" + params.toString())
           .then(response => response.json())
           .then(data => {
-            if (data.length > 0) {
-              // Reveal the cream container
-              document.getElementById("results-container").style.display = "block";
-            }
-            fullResults = data;
-            if (fullResults.length > 0) {
-              document.getElementById("results-container").style.display = "block";
-            }
-            currentPage = 1;
-            renderPage();
-          });
+          if (data.results.length > 0) {
+            document.getElementById("results-container").style.display = "block";
+          }
+          // fullResults = data.results;
+          totalResults = data.total;
+          renderPage();
+        });
       }, error => {
         if (error.code === error.PERMISSION_DENIED && !locationDeniedAlertShown) {
           alert("Location access denied, now searching without location.");
@@ -331,20 +311,19 @@
         query,
         gender,
         age,
-        type
+        type,
+        start: (currentPage - 1) * resultsPerPage,
+        limit: resultsPerPage
       });
       console.log("Query:", query, "Gender:", gender, "Age:", age, "Type:", type);
       fetch("/animals?" + params.toString())
         .then(response => response.json())
         .then(data => {
-          if (data.length > 0) {
+          if (data.results.length > 0) {
             document.getElementById("results-container").style.display = "block";
           }
-          fullResults = data;
-          if (fullResults.length > 0) {
-            document.getElementById("results-container").style.display = "block";
-          }
-          currentPage = 1;
+          // fullResults = data.results;
+          totalResults = data.total;
           renderPage();
         });
     }
@@ -371,42 +350,42 @@
     }
 
     function renderPage() {
-      const start = (currentPage - 1) * resultsPerPage;
-      const end = start + resultsPerPage;
-      const pageResults = fullResults.slice(start, end);
+      const query = document.getElementById("filter-text-val").value;
+      const gender = document.getElementById("gender-filter").value;
+      const age = document.getElementById("age-filter").value;
+      const type = document.getElementById("type-filter").value;
 
-      const answerBox = document.getElementById("answer-box");
-      answerBox.innerHTML = ""; // Clear old results
-
-      pageResults.forEach(row => {
-        let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-        let tempDiv = document.createElement("div");
-        tempDiv.innerHTML = answerBoxTemplate(
-          row.id,
-          row.name,
-          row.full_description,
-          row.type,
-          row.age,
-          row.gender,
-          row.url,
-          row.image_url,
-          row.score,
-          row.distance,
-          document.getElementById("filter-text-val").value
-        );
-        answerBox.appendChild(tempDiv);
+      const params = new URLSearchParams({
+        query,
+        gender,
+        age,
+        type,
+        start: (currentPage - 1) * resultsPerPage,
+        limit: resultsPerPage
       });
 
-      renderPaginationControls();
+      // Add geolocation if it was enabled
+      if (!locationDeniedAlertShown) {
+        navigator.geolocation.getCurrentPosition(position => {
+          params.append("user_lat", position.coords.latitude);
+          params.append("user_lon", position.coords.longitude);
+          fetchResults(params);
+        }, () => {
+          locationDeniedAlertShown = true;
+          fetchResults(params); // fetch without lat/lon
+        });
+      } else {
+        fetchResults(params);
+      }
     }
 
     function renderPaginationControls() {
-      const totalPages = Math.ceil(fullResults.length / resultsPerPage);
+      const totalPages = Math.ceil(totalResults / resultsPerPage);
       let paginationHTML = "";
 
       for (let i = 1; i <= totalPages; i++) {
-        paginationHTML += `<button onclick="goToPage(${i})" style="margin:2px; padding:5px 10px;" ${i === currentPage ? "disabled" : ""}>${i}</button>`;
-      }
+        paginationHTML += `<button onclick="goToPage(${i})" class="page-button ${i === currentPage ? "active" : ""}">${i}</button>`;     
+      }      
 
       // Add this inside or below your results-container div
       let paginationContainer = document.getElementById("pagination-controls");
@@ -423,7 +402,41 @@
 
     function goToPage(page) {
       currentPage = page;
-      renderPage();
+      filterText(); // or filterTextWithoutLocation() if location is denied
+    }
+
+    function fetchResults(params) {
+      fetch("/animals?" + params.toString())
+        .then(response => response.json())
+        .then(data => {
+          fullResults = data.results;
+          totalResults = data.total;
+
+          const answerBox = document.getElementById("answer-box");
+          answerBox.innerHTML = "";
+
+          fullResults.forEach(row => {
+            let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+            let tempDiv = document.createElement("div");
+            tempDiv.innerHTML = answerBoxTemplate(
+              row.id,
+              row.name,
+              row.full_description,
+              row.type,
+              row.age,
+              row.gender,
+              row.url,
+              row.image_url,
+              row.score,
+              row.distance,
+              document.getElementById("filter-text-val").value
+            );
+            answerBox.appendChild(tempDiv);
+          });
+
+          document.getElementById("results-container").style.display = fullResults.length ? "block" : "none";
+          renderPaginationControls();
+        });
     }
   </script>
 </body>
