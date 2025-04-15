@@ -7,4 +7,3 @@ scikit-learn==1.6.1
 sentence-transformers==4.0.2
 SQLAlchemy==2.0.40
 uszipcode==1.0.1
-sqlalchemy-mate==1.4.0
