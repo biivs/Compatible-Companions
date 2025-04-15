@@ -244,6 +244,9 @@
   </div> <!-- Dynamic search results will be appended here -->
 
   <script>
+    let currentPage = 1;
+    const resultsPerPage = 20;
+    let fullResults = [];
     let locationDeniedAlertShown = false;
     function answerBoxTemplate(id, name, full_description, type, age, gender, url, imageUrl, score, distance, query) {
       return `
@@ -303,24 +306,12 @@
               // Reveal the cream container
               document.getElementById("results-container").style.display = "block";
             }
-            data.forEach(row => {
-              let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-              let tempDiv = document.createElement("div");
-              tempDiv.innerHTML = answerBoxTemplate(
-                row.id,
-                row.name,
-                row.full_description,
-                row.type,
-                row.age,
-                row.gender,
-                row.url,
-                row.image_url,
-                row.score,
-                row.distance,
-                document.getElementById("filter-text-val").value // Pass the search query
-              );
-              document.getElementById("answer-box").appendChild(tempDiv);
-            });
+            fullResults = data;
+            if (fullResults.length > 0) {
+              document.getElementById("results-container").style.display = "block";
+            }
+            currentPage = 1;
+            renderPage();
           });
       }, error => {
         if (error.code === error.PERMISSION_DENIED && !locationDeniedAlertShown) {
@@ -349,24 +340,12 @@
           if (data.length > 0) {
             document.getElementById("results-container").style.display = "block";
           }
-          data.forEach(row => {
-            let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
-            let tempDiv = document.createElement("div");
-            tempDiv.innerHTML = answerBoxTemplate(
-              row.id,
-              row.name,
-              row.full_description,
-              row.type,
-              row.age,
-              row.gender,
-              row.url,
-              row.image_url,
-              row.score,
-              row.distance,
-              document.getElementById("filter-text-val").value // Pass the search query
-            );
-            document.getElementById("answer-box").appendChild(tempDiv);
-          });
+          fullResults = data;
+          if (fullResults.length > 0) {
+            document.getElementById("results-container").style.display = "block";
+          }
+          currentPage = 1;
+          renderPage();
         });
     }
 
@@ -389,6 +368,62 @@
             container.innerHTML = html;
           });
       }
+    }
+
+    function renderPage() {
+      const start = (currentPage - 1) * resultsPerPage;
+      const end = start + resultsPerPage;
+      const pageResults = fullResults.slice(start, end);
+
+      const answerBox = document.getElementById("answer-box");
+      answerBox.innerHTML = ""; // Clear old results
+
+      pageResults.forEach(row => {
+        let imageUrl = row.photos && row.photos.length > 0 ? row.photos[0].small : "https://via.placeholder.com/300";
+        let tempDiv = document.createElement("div");
+        tempDiv.innerHTML = answerBoxTemplate(
+          row.id,
+          row.name,
+          row.full_description,
+          row.type,
+          row.age,
+          row.gender,
+          row.url,
+          row.image_url,
+          row.score,
+          row.distance,
+          document.getElementById("filter-text-val").value
+        );
+        answerBox.appendChild(tempDiv);
+      });
+
+      renderPaginationControls();
+    }
+
+    function renderPaginationControls() {
+      const totalPages = Math.ceil(fullResults.length / resultsPerPage);
+      let paginationHTML = "";
+
+      for (let i = 1; i <= totalPages; i++) {
+        paginationHTML += `<button onclick="goToPage(${i})" style="margin:2px; padding:5px 10px;" ${i === currentPage ? "disabled" : ""}>${i}</button>`;
+      }
+
+      // Add this inside or below your results-container div
+      let paginationContainer = document.getElementById("pagination-controls");
+      if (!paginationContainer) {
+        paginationContainer = document.createElement("div");
+        paginationContainer.id = "pagination-controls";
+        paginationContainer.style.textAlign = "center";
+        paginationContainer.style.margin = "20px";
+        document.getElementById("results-container").appendChild(paginationContainer);
+      }
+
+      paginationContainer.innerHTML = paginationHTML;
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      renderPage();
     }
   </script>
 </body>
