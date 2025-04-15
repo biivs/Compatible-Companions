@@ -1,7 +1,6 @@
 Flask==3.1.0
 flask-cors==5.0.1
 matplotlib==3.10.1
-sqlalchemy-mate==1.4.27
 numpy==2.2.4
 pandas==2.2.3
 scikit-learn==1.6.1
