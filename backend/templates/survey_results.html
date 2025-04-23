@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Survey Result</title>
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #FFFDF8;
+      color: #4D3C3C;
+      max-width: 700px;
+      margin: auto;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+    }
+    .result {
+      border: 2px solid #E0C3A6;
+      background-color: #F9E0BB;
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-top: 2rem;
+    }
+    a {
+      display: block;
+      margin-top: 2rem;
+      text-align: center;
+      color: #4D3C3C;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>✨ Your Recommended Companion</h1>
+  <div class="result">
+    <p>{{ message }}</p>
+  </div>
+  <a href="/">← Back to Home</a>
+</body>
+</html>
