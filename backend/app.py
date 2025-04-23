@@ -1,14 +1,13 @@
+from dotenv import load_dotenv
+load_dotenv()
 import json
 import gc
 import os
 import re
-import anthropic
+import google.generativeai as genai
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-client = anthropic.Anthropic(
-    api_key="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"
-)
-
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
@@ -52,11 +51,17 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Specify the path to the JSON file relative to the current script
-json_file_path = os.path.join(current_directory, 'init.json')
+json_file_path = os.path.join(current_directory, 'data', 'init.json')
 
 # Assuming your JSON data is stored in a file named 'init.json'
 with open(json_file_path, 'r') as file:
     data = json.load(file)
+
+with open(os.path.join(current_directory, 'data', 'FINAL_cat_breed_summaries.json')) as f:
+    cat_breed_data = json.load(f)
+
+with open(os.path.join(current_directory, 'data', 'FINAL_dog_breed_summaries.json')) as f:
+    dog_breed_data = json.load(f)
 
 animals_df = pd.DataFrame(data)
 
@@ -80,7 +85,26 @@ if 'id' not in animals_df.columns or 'full_description' not in animals_df.column
     raise ValueError("Expected 'id' and 'full_description' fields in JSON data")
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default_secret_key")
 CORS(app)
+
+def get_best_breed_match(prompt, type_):
+    model = genai.GenerativeModel("models/gemini-1.5-flash")
+    if type_.lower() == "dog":
+        breed_data = dog_breed_data
+    else:
+        breed_data = cat_breed_data
+
+    full_prompt = (
+        f"You are a {type_} breed expert.\n"
+        "Based on the following user preferences, choose ONE breed from this list that best matches.\n"
+        f"{json.dumps(breed_data, indent=2)}\n\n"
+        f"User responses:\n{prompt}\n\n"
+        "Respond with ONLY the breed name, no punctuation or extra text."
+    )
+
+    response = model.generate_content(full_prompt)
+    return response.text.strip()
 
 # # Sample search using json with pandas
 # def json_search(query):
@@ -168,32 +192,37 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
 
 @app.route("/")
 def home():
-    return render_template('base.html', title="Sample HTML")
+    return render_template('base.html', title="Sample HTML", recommended_breed=session.get("recommended_breed"))
 
 @app.route("/survey", methods=["GET", "POST"])
 def survey():
     if request.method == "POST":
         answers = request.form.to_dict()
 
-        prompt = "A user filled out a pet compatibility survey. Here are their responses:\n"
-        for question, answer in answers.items():
-            prompt += f"- {question.replace('_', ' ').capitalize()}: {answer.capitalize()}\n"
-        prompt += "\nBased on this, recommend an ideal pet companion profile."
+        prompt = (
+            "A user filled out a pet compatibility survey. Here are their responses:\n"
+            f"- Interested in: {answers.get('animal_type', 'not specified').capitalize()}\n"
+            f"- Time commitment: {answers.get('time_commitment', 'not specified').capitalize()}\n"
+            f"- Allergies: {answers.get('allergies', 'not specified').capitalize()}\n"
+            f"- Children: {answers.get('children', 'not specified').capitalize()}\n"
+            f"- Okay with senior pets: {answers.get('senior_ok', 'not specified').capitalize()}\n"
+            f"- Outdoor space: {answers.get('outdoor_space', 'not specified').capitalize()}\n"
+        )
+
+        type_ = answers.get("animal_type", "cat")
 
         try:
-            response = client.messages.create(
-                model="claude-3-sonnet-20240229",
-                max_tokens=400,
-                temperature=0.7,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            message = response.content[0].text
+            breed = get_best_breed_match(prompt, type_)
+            session["recommended_breed"] = breed
+            message = f"Based on your survey, we recommend the {type_} breed: {breed}"
+            summary = next((item["Trait Summary"] for item in (dog_breed_data if type_ == "dog" else cat_breed_data) if item["Breed"].lower() == breed.lower()), "No summary found.")
+            reason = None
         except Exception as e:
             message = f"Something went wrong: {str(e)}"
+            breed = None
+            reason = None
 
-        return render_template("survey_result.html", message=message)
+        return render_template("survey_result.html", message=message, breed=breed, reason=reason, summary=summary)
 
     return render_template("survey.html")
 
@@ -224,6 +253,8 @@ def animals_search():
         "results": paginated,
         "total": len(results_json)
     })
+
+
 @app.route("/similarity_chart")
 def similarity_chart():
     animal_id = request.args.get("id")
@@ -276,6 +307,5 @@ def similarity_chart():
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
 
-# if 'DB_NAME' not in os.environ:
-#     app.run(debug=True,host="0.0.0.0",port=5001)
-app.run(debug=True, host="0.0.0.0", port=5001)
+if 'DB_NAME' not in os.environ:
+    app.run(debug=True,host="0.0.0.0",port=5001)

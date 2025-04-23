@@ -214,6 +214,11 @@
   </div>
   <!-- Search Controls -->
   <div class="search-container">
+    {% if recommended_breed %}
+      <div style="text-align: center; margin-bottom: 1rem; font-size: 1.2rem; color: #4D3C3C;">
+        💡 Based on your survey, we recommend: <strong>{{ recommended_breed }}</strong>
+      </div>
+    {% endif %}
     <input type="text" id="filter-text-val" placeholder="Search for a future companion...🐾" onkeyup="filterText()">
     <br> <br>
     <select id="gender-filter">

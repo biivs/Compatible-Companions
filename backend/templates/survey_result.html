@@ -35,6 +35,12 @@
   <h1>✨ Your Recommended Companion</h1>
   <div class="result">
     <p>{{ message }}</p>
+    {% if summary %}
+      <div style="margin-top: 1.5rem; padding: 1rem; background-color: #F9E0BB; border: 1px solid #4D3C3C; border-radius: 8px;">
+        <h2 style="margin-bottom: 0.5rem;">🐾 Breed Trait Summary</h2>
+        <p>{{ summary }}</p>
+      </div>
+    {% endif %}
   </div>
   <a href="/">← Back to Home</a>
 </body>
