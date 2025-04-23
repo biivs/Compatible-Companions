@@ -47,21 +47,39 @@
   <h1>🐾 Compatibility Survey</h1>
   <form method="POST" action="/survey">
     <div class="question">
-      <label>Do you prefer dogs?</label>
+      <label>Are you interested in a dog or a cat?</label>
       <div class="options">
-        <label><input type="radio" name="prefer_dogs" value="yes" required> Yes</label>
-        <label><input type="radio" name="prefer_dogs" value="no"> No</label>
+        <label><input type="radio" name="animal_type" value="dog" required> Dog</label>
+        <label><input type="radio" name="animal_type" value="cat"> Cat</label>
       </div>
     </div>
 
     <div class="question">
-      <label>Do you prefer cats?</label>
+      <label>How much time can you dedicate to your pet daily?</label>
       <div class="options">
-        <label><input type="radio" name="prefer_cats" value="yes" required> Yes</label>
-        <label><input type="radio" name="prefer_cats" value="no"> No</label>
+        <label><input type="radio" name="time_commitment" value="low" required> Low</label>
+        <label><input type="radio" name="time_commitment" value="medium"> Medium</label>
+        <label><input type="radio" name="time_commitment" value="high"> High</label>
+      </div>
+
+    </div>
+
+    <div class="question">
+      <label>Do you have any allergies to pets?</label>
+      <div class="options">
+        <label><input type="radio" name="allergies" value="yes" required> Yes</label>
+        <label><input type="radio" name="allergies" value="no"> No</label>
       </div>
     </div>
 
+    <div class="question">
+      <label>Do you have children or plan to have children in the near future?</label>
+      <div class="options">
+        <label><input type="radio" name="children" value="yes" required> Yes</label>
+        <label><input type="radio" name="children" value="no"> No</label>
+      </div>
+    </div>
+    
     <div class="question">
       <label>Are you okay with senior pets?</label>
       <div class="options">
