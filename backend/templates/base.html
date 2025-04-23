@@ -185,6 +185,23 @@
       border: 2px solid #4D3C3C;
     }
 
+    .survey-button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #FFF4E3;
+      color: #4D3C3C;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1rem;
+      border: 2px solid #4D3C3C;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .survey-button:hover {
+      background-color: #FDEFD2;
+    }
+
   </style>
 
 </head>
@@ -216,6 +233,8 @@
       <option value="Adult">Adult</option>
       <option value="Senior">Senior</option>
     </select>
+    <br>
+    <button onclick="window.open('/survey', '_blank')" class="survey-button">Take Compatibility Survey</button>
   </div>
 
   <!-- Results Section -->

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pet Compatibility Survey</title>
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #FFFDF8;
+      color: #4D3C3C;
+      max-width: 600px;
+      margin: auto;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .question {
+      display: flex;
+      flex-direction: column;
+    }
+    .options {
+      display: flex;
+      gap: 1rem;
+    }
+    input[type="submit"] {
+      padding: 0.75rem 1.5rem;
+      background-color: #F9E0BB;
+      border: 2px solid #4D3C3C;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      align-self: center;
+      transition: background-color 0.3s;
+    }
+    input[type="submit"]:hover {
+      background-color: #FDEFD2;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐾 Compatibility Survey</h1>
+  <form method="POST" action="/survey">
+    <div class="question">
+      <label>Do you prefer dogs?</label>
+      <div class="options">
+        <label><input type="radio" name="prefer_dogs" value="yes" required> Yes</label>
+        <label><input type="radio" name="prefer_dogs" value="no"> No</label>
+      </div>
+    </div>
+
+    <div class="question">
+      <label>Do you prefer cats?</label>
+      <div class="options">
+        <label><input type="radio" name="prefer_cats" value="yes" required> Yes</label>
+        <label><input type="radio" name="prefer_cats" value="no"> No</label>
+      </div>
+    </div>
+
+    <div class="question">
+      <label>Are you okay with senior pets?</label>
+      <div class="options">
+        <label><input type="radio" name="senior_ok" value="yes" required> Yes</label>
+        <label><input type="radio" name="senior_ok" value="no"> No</label>
+      </div>
+    </div>
+
+    <div class="question">
+      <label>Do you live in a home with outdoor space?</label>
+      <div class="options">
+        <label><input type="radio" name="outdoor_space" value="yes" required> Yes</label>
+        <label><input type="radio" name="outdoor_space" value="no"> No</label>
+      </div>
+    </div>
+
+    <input type="submit" value="Submit Survey">
+</form>
+  <p style="text-align: center; margin-top: 2rem;"><a href="/" style="color: #4D3C3C; text-decoration: underline;">← Back to Home</a></p>
+</body>
+</html>

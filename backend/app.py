@@ -2,6 +2,7 @@ import json
 import gc
 import os
 import re
+import openai
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
@@ -72,6 +73,8 @@ semantic_embeddings = semantic_model.encode(animals_df['full_description'].filln
 
 if 'id' not in animals_df.columns or 'full_description' not in animals_df.columns:
     raise ValueError("Expected 'id' and 'full_description' fields in JSON data")
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
 CORS(app)
@@ -164,6 +167,32 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
 def home():
     return render_template('base.html', title="Sample HTML")
 
+@app.route("/survey", methods=["GET", "POST"])
+def survey():
+    if request.method == "POST":
+        answers = request.form.to_dict()
+
+        prompt = "A user filled out a pet compatibility survey. Here are their responses:\n"
+        for question, answer in answers.items():
+            prompt += f"- {question.replace('_', ' ').capitalize()}: {answer.capitalize()}\n"
+        prompt += "Based on this, recommend an ideal pet companion profile."
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You're a pet adoption expert."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            message = response.choices[0].message['content']
+        except Exception as e:
+            message = f"Something went wrong: {str(e)}"
+
+        return render_template("survey_result.html", message=message)
+
+    return render_template("survey.html")
+
 # @app.route("/animals")
 # def animals_search():
 #     text = request.args.get("query")
@@ -245,4 +274,3 @@ def similarity_chart():
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5001)
-
