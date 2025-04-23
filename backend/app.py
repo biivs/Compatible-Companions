@@ -2,7 +2,12 @@ import json
 import gc
 import os
 import re
-import openai
+import anthropic
+
+client = anthropic.Anthropic(
+    api_key="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"
+)
+
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
@@ -73,8 +78,6 @@ semantic_embeddings = semantic_model.encode(animals_df['full_description'].filln
 
 if 'id' not in animals_df.columns or 'full_description' not in animals_df.columns:
     raise ValueError("Expected 'id' and 'full_description' fields in JSON data")
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
 CORS(app)
@@ -175,17 +178,18 @@ def survey():
         prompt = "A user filled out a pet compatibility survey. Here are their responses:\n"
         for question, answer in answers.items():
             prompt += f"- {question.replace('_', ' ').capitalize()}: {answer.capitalize()}\n"
-        prompt += "Based on this, recommend an ideal pet companion profile."
+        prompt += "\nBased on this, recommend an ideal pet companion profile."
 
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
+            response = client.messages.create(
+                model="claude-3-sonnet-20240229",
+                max_tokens=400,
+                temperature=0.7,
                 messages=[
-                    {"role": "system", "content": "You're a pet adoption expert."},
                     {"role": "user", "content": prompt}
                 ]
             )
-            message = response.choices[0].message['content']
+            message = response.content[0].text
         except Exception as e:
             message = f"Something went wrong: {str(e)}"
 
@@ -272,5 +276,6 @@ def similarity_chart():
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
 
-if 'DB_NAME' not in os.environ:
-    app.run(debug=True,host="0.0.0.0",port=5001)
+# if 'DB_NAME' not in os.environ:
+#     app.run(debug=True,host="0.0.0.0",port=5001)
+app.run(debug=True, host="0.0.0.0", port=5001)
