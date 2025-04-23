@@ -29,7 +29,7 @@ from uszipcode import SearchEngine
 from math import radians, sin, cos, sqrt, atan2
 
 def get_coords_from_zip(zip_code):
-    search = SearchEngine(simple_zipcode=True)
+    search = SearchEngine()
     result = search.by_zipcode(zip_code)
     if result:
         return result.lat, result.lng
@@ -239,8 +239,8 @@ def animals_search():
     gender = request.args.get("gender")
     age = request.args.get("age")
     type_ = request.args.get("type", "")
-    user_lat = request.args.get("user_lat")
-    user_lon = request.args.get("user_lon")
+    zip_code = request.args.get("zip_code")
+    user_lat, user_lon = get_coords_from_zip(zip_code) if zip_code else (None, None)
     start = int(request.args.get("start", 0))
     limit = int(request.args.get("limit", 20))
 
