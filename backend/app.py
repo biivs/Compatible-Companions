@@ -5,8 +5,8 @@ import json
 import gc
 import os
 import re
-import google.generativeai as genai
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+#import google.generativeai as genai
+#genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 from flask import Flask, render_template, request, jsonify, send_file, session
 from flask_cors import CORS
@@ -134,37 +134,77 @@ def get_best_breed_match(prompt, type_):
 
 #     matches_filtered = matches[['id', 'name', 'url', 'type', 'species', 'age', 'gender', 'status', 'image_url', 'full_description', 'score']]
 #     return matches_filtered.to_json(orient='records')
+def preprocess_query(query):
+    query = query.lower()
+    type_keywords = {"cat": 1, "dog": 1}
+    detected_type = None
+
+    for keyword, _ in type_keywords.items():
+        if re.search(rf"\b{keyword}\b", query):
+            detected_type = keyword
+            break
+
+    query = re.sub(r"\b(cat|dog)\b", "", query).strip()
+
+    return query, detected_type
 
 @profile
 def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, user_lon=None):
     query = query.lower()
+    query, detected_type = preprocess_query(query)
+    if detected_type:
+        animal_type = detected_type
 
-    query_vec = tfidf_vectorizer.transform([query])
-    tfidf_sim = cosine_similarity(query_vec, tfidf_matrix).flatten()
-    query_lsa = svd.transform(query_vec)
-    lsa_sim = cosine_similarity(query_lsa, lsa_matrix).flatten()
-    query_embedding = semantic_model.encode([query], convert_to_tensor=True)
-    semantic_sim = cosine_similarity(query_embedding.cpu().numpy(), semantic_embeddings.cpu().numpy()).flatten()
-
-    # Work with a local copy to avoid modifying animals_df in-place
     local_df = animals_df.copy()
+
+    if gender:
+        local_df = local_df[local_df['gender'].str.lower() == gender.lower()]
+    if age:
+        local_df = local_df[local_df['age'].str.lower() == age.lower()]
+    if animal_type:
+        valid_types = ["dog", "cat"]
+        normalized_type = animal_type.strip().lower()
+        if normalized_type in valid_types:
+            local_df = local_df[local_df['type'].str.lower() == normalized_type]
+        else:
+            local_df = local_df[local_df['type'].str.lower().isin(valid_types)]
+
+    local_df = local_df.reset_index(drop=True)
+
+    # query_vec = tfidf_vectorizer.transform([query])
+    # tfidf_sim = cosine_similarity(query_vec, tfidf_matrix).flatten()
+    # query_lsa = svd.transform(query_vec)
+    # lsa_sim = cosine_similarity(query_lsa, lsa_matrix).flatten()
+    # query_embedding = semantic_model.encode([query], convert_to_tensor=True)
+    # semantic_sim = cosine_similarity(query_embedding.cpu().numpy(), semantic_embeddings.cpu().numpy()).flatten()
+    filtered_tfidf_matrix = tfidf_vectorizer.transform(local_df['full_description'].fillna(""))
+    query_vec = tfidf_vectorizer.transform([query])
+    tfidf_sim = cosine_similarity(query_vec, filtered_tfidf_matrix).flatten()
+
+    filtered_lsa_matrix = svd.transform(filtered_tfidf_matrix)
+    query_lsa = svd.transform(query_vec)
+    lsa_sim = cosine_similarity(query_lsa, filtered_lsa_matrix).flatten()
+
+    filtered_semantic_embeddings = semantic_model.encode(local_df['full_description'].fillna(""), convert_to_tensor=True)
+    query_embedding = semantic_model.encode([query], convert_to_tensor=True)
+    semantic_sim = cosine_similarity(query_embedding.cpu().numpy(), filtered_semantic_embeddings.cpu().numpy()).flatten()
+
+
     local_df['tfidf_score'] = tfidf_sim
     local_df['lsa_score'] = lsa_sim
     local_df['semantic_score'] = semantic_sim
     local_df['score'] = 0.4 * semantic_sim + 0.3 * tfidf_sim + 0.3 * lsa_sim
 
-    penalty = 0.3
-    local_df.loc[local_df['full_description'].isnull(), 'score'] -= penalty
-    local_df['score'] = local_df['score'].clip(lower=0)
+    # penalty = 0.3
+    # local_df.loc[local_df['full_description'].isnull(), 'score'] -= penalty
+    # local_df['score'] = local_df['score'].clip(lower=0)
+    if detected_type:
+        type_penalty = 0.5
+        type_match = local_df['type'].str.lower() == detected_type
+        local_df['score'] -= (~type_match) * type_penalty
+        local_df['score'] = local_df['score'].clip(lower=0)
 
     matches = local_df[local_df['score'] > 0.1].copy()
-
-    if gender:
-        matches = matches[matches['gender'].str.lower() == gender.lower()]
-    if age:
-        matches = matches[matches['age'].str.lower() == age.lower()]
-    if animal_type:
-        matches = matches[matches['type'].str.lower() == animal_type.lower()]
 
     if user_lat and user_lon:
         user_lat = float(user_lat)
