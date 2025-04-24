@@ -1,4 +1,4 @@
-from memory_profiler import profile
+# from memory_profiler import profile
 from dotenv import load_dotenv
 load_dotenv()
 import json
@@ -153,7 +153,7 @@ def preprocess_query(query):
 
     return query, detected_type
 
-@profile
+#@profile
 def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, user_lon=None):
     query = query.lower()
     query, detected_type = preprocess_query(query)
