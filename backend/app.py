@@ -230,8 +230,7 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
         lambda x: x[0]['small'] if isinstance(x, list) and x else "https://via.placeholder.com/300"
     )
 
-    # return matches[['id', 'name', 'url', 'type', 'species', 'age', 'gender', 'status',
-                'image_url', 'full_description', 'score', 'tfidf_score', 'lsa_score', 'semantic_score', 'distance']].to_json(orient='records')
+    # return matches[['id', 'name', 'url', 'type', 'species', 'age', 'gender', 'status', 'image_url', 'full_description', 'score', 'tfidf_score', 'lsa_score', 'semantic_score', 'distance']].to_json(orient='records')
    
     #TENTATIVE FIX BELOW
 
