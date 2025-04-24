@@ -202,6 +202,24 @@
       background-color: #FDEFD2;
     }
 
+    .similarity-chart-button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 1rem;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #FFF4E3;
+      color: #4D3C3C;
+      border: 2px solid #4D3C3C;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .similarity-chart-button:hover {
+      background-color: #FDEFD2;
+    }
+
   </style>
 
 </head>
@@ -215,7 +233,7 @@
   <!-- Search Controls -->
   <div class="search-container">
     <input type="text" id="zip-code-input" placeholder="Enter your zip code..." style="margin-bottom: 10px; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
-    <input type="text" id="filter-text-val" placeholder="Search for a future companion...🐾" onkeyup="filterText()">
+    <input type="text" id="filter-text-val" placeholder="Search for a future companion...🐾" onkeyup="if (event.key === 'Enter') filterText();">
     <br> <br>
     <select id="gender-filter">
       <option value="">Any Gender</option>
@@ -275,10 +293,9 @@
                     </p>
                 </div>
             </div>
-            <div class="similarity-chart-container">
-                <img src="/similarity_chart?id=${id}&query=${encodeURIComponent(query)}" 
-                     class="similarity-chart" 
-                     alt="Similarity analysis for ${name}">
+            <div>
+              <button class="similarity-chart-button" onclick="toggleChart(${id}, '${query}')">See Similarity Chart</button>
+              <div id="chart-container-${id}" class="similarity-chart-container" style="display: none;"></div>
             </div>
         </div>`;
     }
@@ -358,9 +375,19 @@
       const container = document.getElementById(`chart-container-${petId}`);
       if (container.innerHTML.trim() === '') {
         fetch(`/similarity_chart?id=${petId}&query=${encodeURIComponent(query)}`)
-          .then(response => response.text())
-          .then(html => {
-            container.innerHTML = html;
+          .then(response => response.blob())
+          .then(blob => {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            img.alt = "Similarity chart";
+            img.className = "similarity-chart";
+            img.style.maxWidth = '400px';
+            container.innerHTML = '';
+            container.appendChild(img);
+          })
+          .catch(error => {
+            console.error("Error loading chart:", error);
+            container.innerHTML = '<p style="color: red;">Failed to load chart.</p>';
           });
       }
     }

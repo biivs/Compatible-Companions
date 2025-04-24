@@ -134,6 +134,7 @@ def get_best_breed_match(prompt, type_):
 
 #     matches_filtered = matches[['id', 'name', 'url', 'type', 'species', 'age', 'gender', 'status', 'image_url', 'full_description', 'score']]
 #     return matches_filtered.to_json(orient='records')
+
 def preprocess_query(query):
     query = query.lower()
     type_keywords = {"cat": 1, "dog": 1}
@@ -170,6 +171,7 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
             local_df = local_df[local_df['type'].str.lower().isin(valid_types)]
 
     local_df = local_df.reset_index(drop=True)
+    local_df = local_df[local_df['full_description'].notnull()]
 
     # query_vec = tfidf_vectorizer.transform([query])
     # tfidf_sim = cosine_similarity(query_vec, tfidf_matrix).flatten()
@@ -185,7 +187,8 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
     query_lsa = svd.transform(query_vec)
     lsa_sim = cosine_similarity(query_lsa, filtered_lsa_matrix).flatten()
 
-    filtered_semantic_embeddings = semantic_model.encode(local_df['full_description'].fillna(""), convert_to_tensor=True)
+    filtered_descriptions = local_df['full_description'].fillna("").reset_index(drop=True)
+    filtered_semantic_embeddings = semantic_model.encode(filtered_descriptions, convert_to_tensor=True)
     query_embedding = semantic_model.encode([query], convert_to_tensor=True)
     semantic_sim = cosine_similarity(query_embedding.cpu().numpy(), filtered_semantic_embeddings.cpu().numpy()).flatten()
 
@@ -246,10 +249,13 @@ def survey():
             "A user filled out a pet compatibility survey. Here are their responses:\n"
             f"- Interested in: {answers.get('animal_type', 'not specified').capitalize()}\n"
             f"- Time commitment: {answers.get('time_commitment', 'not specified').capitalize()}\n"
+            f"- Other pets: {answers.get('other_pets', 'not specified').capitalize()}\n"
+            f"- Size: {answers.get('size', 'not specified').capitalize()}\n"
             f"- Allergies: {answers.get('allergies', 'not specified').capitalize()}\n"
             f"- Children: {answers.get('children', 'not specified').capitalize()}\n"
             f"- Okay with senior pets: {answers.get('senior_ok', 'not specified').capitalize()}\n"
             f"- Outdoor space: {answers.get('outdoor_space', 'not specified').capitalize()}\n"
+
         )
 
         type_ = answers.get("animal_type", "cat")
