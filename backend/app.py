@@ -29,6 +29,14 @@ import base64
 from uszipcode import SearchEngine
 from math import radians, sin, cos, sqrt, atan2
 
+from spiderchart import (
+    create_spider_chart,
+    reverse_index,
+    get_relevant_adjectives,
+    score_description
+    
+)
+
 def get_coords_from_zip(zip_code):
     search = SearchEngine()
     result = search.by_zipcode(zip_code)
@@ -45,16 +53,12 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 # ROOT_PATH for linking with all your files. 
-# Feel free to use a config.py or settings.py with a global export variable
 os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 
-# Get the directory of the current script
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
-# Specify the path to the JSON file relative to the current script
 json_file_path = os.path.join(current_directory, 'data', 'init.json')
 
-# Assuming your JSON data is stored in a file named 'init.json'
 with open(json_file_path, 'r') as file:
     data = json.load(file)
 
@@ -320,50 +324,34 @@ def similarity_chart():
     query = request.args.get("query", "")
 
     if not animal_id or not query:
-        return jsonify({"error": "Both id and query parameters are required"}), 400
+        return jsonify({"error": "Both 'id' and 'query' parameters are required"}), 400
 
     try:
-        animal = animals_df[animals_df['id'] == int(animal_id)].iloc[0]
+        animal_id = int(animal_id)
+    except ValueError:
+        return jsonify({"error": "Invalid 'id' parameter"}), 400
+
+    try:
+        animal = animals_df[animals_df['id'] == animal_id].iloc[0]
+        description = animal['full_description']
     except IndexError:
         return jsonify({"error": "Animal not found"}), 404
 
-    all_traits = ['playful', 'calm', 'affectionate', 'energetic', 'friendly', 'gentle', 'independent']
-    query = query.lower()
-    traits_in_query = [trait for trait in all_traits if trait in query]
+    adjectives = get_relevant_adjectives(query, description)
+    
+    query_scores = score_description(query, adjectives)
+    description_scores = score_description(description, adjectives)
 
-    if not traits_in_query:
-        traits_in_query = ['playful', 'calm', 'friendly']  # default fallback traits
+    buf = create_spider_chart(
+        adjectives,
+        query_scores,
+        description_scores,
+        f"Trait Comparison: Your Preferences vs {animal['name']}'s Traits"
+    )
 
-    animal_text = (animal['full_description'] or "").lower()
+    if not buf:
+        return jsonify({"error": "Failed to generate chart"}), 500
 
-    def score_trait(trait):
-        return 1.0 if re.search(rf"\b{re.escape(trait)}\b", animal_text) else 0.1  # crude scoring
-
-    trait_scores = [score_trait(trait) for trait in traits_in_query]
-
-    N = len(traits_in_query)
-    angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
-    trait_scores += trait_scores[:1]
-    angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-    ax.plot(angles, trait_scores, color='#FF7043', linewidth=2, marker='o')
-    ax.fill(angles, trait_scores, color='#FF7043', alpha=0.25)
-
-    ax.set_theta_offset(np.pi / 2)
-    ax.set_theta_direction(-1)
-
-    ax.set_thetagrids(np.degrees(angles[:-1]), traits_in_query, fontsize=10)
-    ax.set_ylim(0, 1)
-    ax.set_yticks([0.2, 0.4, 0.6, 0.8])
-    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8"], color="grey", fontsize=8)
-    ax.grid(True, linestyle='--', color='gray', alpha=0.3)
-    ax.set_title(f"Trait Match for: {animal['name']}", y=1.1, fontsize=14)
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', dpi=120, bbox_inches='tight', facecolor='white')
-    plt.close()
-    buf.seek(0)
     return send_file(buf, mimetype='image/png')
 
 if 'DB_NAME' not in os.environ:
