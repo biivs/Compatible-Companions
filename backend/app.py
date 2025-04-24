@@ -1,3 +1,4 @@
+from memory_profiler import profile
 from dotenv import load_dotenv
 load_dotenv()
 import json
@@ -134,6 +135,7 @@ def get_best_breed_match(prompt, type_):
 #     matches_filtered = matches[['id', 'name', 'url', 'type', 'species', 'age', 'gender', 'status', 'image_url', 'full_description', 'score']]
 #     return matches_filtered.to_json(orient='records')
 
+@profile
 def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, user_lon=None):
     query = query.lower()
 
@@ -144,17 +146,18 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
     query_embedding = semantic_model.encode([query], convert_to_tensor=True)
     semantic_sim = cosine_similarity(query_embedding.cpu().numpy(), semantic_embeddings.cpu().numpy()).flatten()
 
-    # Add individual scores to DataFrame
-    animals_df['tfidf_score'] = tfidf_sim
-    animals_df['lsa_score'] = lsa_sim
-    animals_df['semantic_score'] = semantic_sim
-    animals_df['score'] = 0.4 * semantic_sim + 0.3 * tfidf_sim + 0.3 * lsa_sim
+    # Work with a local copy to avoid modifying animals_df in-place
+    local_df = animals_df.copy()
+    local_df['tfidf_score'] = tfidf_sim
+    local_df['lsa_score'] = lsa_sim
+    local_df['semantic_score'] = semantic_sim
+    local_df['score'] = 0.4 * semantic_sim + 0.3 * tfidf_sim + 0.3 * lsa_sim
 
     penalty = 0.3
-    animals_df.loc[animals_df['full_description'].isnull(), 'score'] -= penalty
-    animals_df['score'] = animals_df['score'].clip(lower=0)
+    local_df.loc[local_df['full_description'].isnull(), 'score'] -= penalty
+    local_df['score'] = local_df['score'].clip(lower=0)
 
-    matches = animals_df[animals_df['score'] > 0.1].copy()
+    matches = local_df[local_df['score'] > 0.1].copy()
 
     if gender:
         matches = matches[matches['gender'].str.lower() == gender.lower()]
