@@ -68,6 +68,7 @@ with open(os.path.join(current_directory, 'data', 'FINAL_cat_breed_summaries.jso
 with open(os.path.join(current_directory, 'data', 'FINAL_dog_breed_summaries.json')) as f:
     dog_breed_data = json.load(f)
 
+
 animals_df = pd.DataFrame(data)
 
 del data
@@ -250,44 +251,83 @@ def json_search(query, gender=None, age=None, animal_type=None, user_lat=None, u
             cols_to_return.append(col)
     
     return matches[cols_to_return].to_json(orient='records')
+
 @app.route("/")
 def home():
-    return render_template('base.html', title="Sample HTML", recommended_breed=session.get("recommended_breed"))
+    recommended_breed = session.pop("recommended_breed", None)
+    return render_template('base.html', recommended_breed=recommended_breed)
 
 @app.route("/survey", methods=["GET", "POST"])
 def survey():
     if request.method == "POST":
         answers = request.form.to_dict()
+        animal_type = answers.get("animal_type")
 
-        prompt = (
-            "A user filled out a pet compatibility survey. Here are their responses:\n"
-            f"- Interested in: {answers.get('animal_type', 'not specified').capitalize()}\n"
-            f"- Time commitment: {answers.get('time_commitment', 'not specified').capitalize()}\n"
-            f"- Other pets: {answers.get('other_pets', 'not specified').capitalize()}\n"
-            f"- Size: {answers.get('size', 'not specified').capitalize()}\n"
-            f"- Allergies: {answers.get('allergies', 'not specified').capitalize()}\n"
-            f"- Children: {answers.get('children', 'not specified').capitalize()}\n"
-            f"- Okay with senior pets: {answers.get('senior_ok', 'not specified').capitalize()}\n"
-            f"- Outdoor space: {answers.get('outdoor_space', 'not specified').capitalize()}\n"
-
-        )
-
-        type_ = answers.get("animal_type", "cat")
-
-        try:
-            breed = get_best_breed_match(prompt, type_)
+        if animal_type == "dog":
+            dog_key = ''.join(answers.get(f"dog_q{i+1}", "N").upper() for i in range(6))
+            with open("data/dog_breed_mappings.json") as f:
+                dog_breed_map = json.load(f)
+            breed = dog_breed_map.get(dog_key, "Unknown")
+            summary = next(
+                (b["Trait Summary"] for b in dog_breed_data if b["Breed"].lower() == breed.lower()),
+                "Sorry, no summary found."
+            )
             session["recommended_breed"] = breed
-            message = f"Based on your survey, we recommend the {type_} breed: {breed}"
-            summary = next((item["Trait Summary"] for item in (dog_breed_data if type_ == "dog" else cat_breed_data) if item["Breed"].lower() == breed.lower()), "No summary found.")
-            reason = None
-        except Exception as e:
-            message = f"Something went wrong: {str(e)}"
-            breed = None
-            reason = None
+            return render_template("survey_result.html", breed=breed, summary=summary)
 
-        return render_template("survey_result.html", message=message, breed=breed, reason=reason, summary=summary)
+        elif animal_type == "cat":
+            cat_key = ''.join(answers.get(f"cat_q{i+1}", "N").upper() for i in range(4))
+            with open("data/cat_breed_mappings.json") as f:
+                cat_breed_map = json.load(f)
+            breed = cat_breed_map.get(cat_key, "Unknown")
+            summary = next(
+                (b["Trait Summary"] for b in cat_breed_data if b["Breed"].lower() == breed.lower()),
+                "Sorry, no summary found."
+            )
+            session["recommended_breed"] = breed
+            return render_template("survey_result.html", breed=breed, summary=summary)
+
+        else:
+            return "Invalid animal type", 400
 
     return render_template("survey.html")
+
+
+
+# @app.route("/survey", methods=["GET", "POST"])
+# def survey():
+#     if request.method == "POST":
+#         answers = request.form.to_dict()
+
+#         prompt = (
+#             "A user filled out a pet compatibility survey. Here are their responses:\n"
+#             f"- Interested in: {answers.get('animal_type', 'not specified').capitalize()}\n"
+#             f"- Time commitment: {answers.get('time_commitment', 'not specified').capitalize()}\n"
+#             f"- Other pets: {answers.get('other_pets', 'not specified').capitalize()}\n"
+#             f"- Size: {answers.get('size', 'not specified').capitalize()}\n"
+#             f"- Allergies: {answers.get('allergies', 'not specified').capitalize()}\n"
+#             f"- Children: {answers.get('children', 'not specified').capitalize()}\n"
+#             f"- Okay with senior pets: {answers.get('senior_ok', 'not specified').capitalize()}\n"
+#             f"- Outdoor space: {answers.get('outdoor_space', 'not specified').capitalize()}\n"
+
+#         )
+
+#         type_ = answers.get("animal_type", "cat")
+
+#         try:
+#             breed = get_best_breed_match(prompt, type_)
+#             session["recommended_breed"] = breed
+#             message = f"Based on your survey, we recommend the {type_} breed: {breed}"
+#             summary = next((item["Trait Summary"] for item in (dog_breed_data if type_ == "dog" else cat_breed_data) if item["Breed"].lower() == breed.lower()), "No summary found.")
+#             reason = None
+#         except Exception as e:
+#             message = f"Something went wrong: {str(e)}"
+#             breed = None
+#             reason = None
+
+#         return render_template("survey_result.html", message=message, breed=breed, reason=reason, summary=summary)
+
+#     return render_template("survey.html")
 
 # @app.route("/animals")
 # def animals_search():
