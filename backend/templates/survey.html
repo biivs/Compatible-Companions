@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Pet Compatibility Survey</title>
@@ -12,22 +13,32 @@
       margin: auto;
       padding: 2rem;
     }
+
     h1 {
       text-align: center;
     }
+
     form {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
     }
+
     .question {
       display: flex;
       flex-direction: column;
     }
+
     .options {
       display: flex;
       gap: 1rem;
+      margin-top: 0.5rem;
     }
+
+    .conditional {
+      display: none;
+    }
+
     input[type="submit"] {
       padding: 0.75rem 1.5rem;
       background-color: #F9E0BB;
@@ -38,11 +49,38 @@
       align-self: center;
       transition: background-color 0.3s;
     }
+
     input[type="submit"]:hover {
       background-color: #FDEFD2;
     }
   </style>
+  <script>
+    function showConditionalQuestions() {
+      const selected = document.querySelector('input[name="animal_type"]:checked')?.value;
+      const dogQs = document.querySelectorAll('.dog-question');
+      const catQs = document.querySelectorAll('.cat-question');
+
+      dogQs.forEach(q => q.style.display = selected === 'dog' ? 'block' : 'none');
+      catQs.forEach(q => q.style.display = selected === 'cat' ? 'block' : 'none');
+
+      // Dynamically make only the relevant Y/N inputs required
+      document.querySelectorAll('.dog-question input, .cat-question input').forEach(input => {
+        input.required = false;
+      });
+      document.querySelectorAll(`.${selected}-question input`).forEach(input => {
+        input.required = true;
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const radios = document.querySelectorAll('input[name="animal_type"]');
+      radios.forEach(r => r.addEventListener("change", showConditionalQuestions));
+      showConditionalQuestions(); // run on load in case user refreshes
+    });
+  </script>
+
 </head>
+
 <body>
   <h1>🐾 Compatibility Survey</h1>
   <form method="POST" action="/survey">
@@ -54,67 +92,84 @@
       </div>
     </div>
 
-    <div class="question">
-      <label>How much time can you dedicate to your pet daily?</label>
+    <!-- Cat Questions -->
+    <div class="question cat-question conditional">
+      <label>Is having a cat that is energetic and requires regular playtime important to you?</label>
       <div class="options">
-        <label><input type="radio" name="time_commitment" value="low" required> Low</label>
-        <label><input type="radio" name="time_commitment" value="medium"> Medium</label>
-        <label><input type="radio" name="time_commitment" value="high"> High</label>
-      </div>
-
-    </div>
-
-    <div class="question">
-      <label>Do you have any allergies to pets?</label>
-      <div class="options">
-        <label><input type="radio" name="allergies" value="yes" required> Yes</label>
-        <label><input type="radio" name="allergies" value="no"> No</label>
+        <label><input type="radio" name="cat_q1" value="Y" required> Yes</label>
+        <label><input type="radio" name="cat_q1" value="N"> No</label>
       </div>
     </div>
-
-    <div class="question">
-      <label>Do you have children or plan to have children in the near future?</label>
+    <div class="question cat-question conditional">
+      <label>Are you looking for a cat that is affectionate and enjoys cuddling?</label>
       <div class="options">
-        <label><input type="radio" name="children" value="yes" required> Yes</label>
-        <label><input type="radio" name="children" value="no"> No</label>
+        <label><input type="radio" name="cat_q2" value="Y" required> Yes</label>
+        <label><input type="radio" name="cat_q2" value="N"> No</label>
       </div>
     </div>
-
-    <div class="question">
-      <label>Do you have other pets at home?</label>
+    <div class="question cat-question conditional">
+      <label>Would you prefer a cat that is vocal and expressive?</label>
       <div class="options">
-        <label><input type="radio" name="other_pets" value="yes" required> Yes</label>
-        <label><input type="radio" name="other_pets" value="no"> No</label>
+        <label><input type="radio" name="cat_q3" value="Y" required> Yes</label>
+        <label><input type="radio" name="cat_q3" value="N"> No</label>
+      </div>
+    </div>
+    <div class="question cat-question conditional">
+      <label>Are you prepared to regularly groom a long- or dense-coated cat?</label>
+      <div class="options">
+        <label><input type="radio" name="cat_q4" value="Y" required> Yes</label>
+        <label><input type="radio" name="cat_q4" value="N"> No</label>
       </div>
     </div>
 
-    <div class ="question">
-        <label>What size companion would you like?</label>
-        <div class="options">
-          <label><input type="radio" name="size" value="small" required> Small</label>
-          <label><input type="radio" name="size" value="medium"> Medium</label>
-          <label><input type="radio" name="size" value="large"> Large</label>
-    </div>
-
-
-    <div class="question">
-      <label>Are you okay with senior pets?</label>
+    <!-- Dog Questions -->
+    <div class="question dog-question conditional">
+      <label>Are you prepared for a dog with high energy levels that needs consistent physical activity?</label>
       <div class="options">
-        <label><input type="radio" name="senior_ok" value="yes" required> Yes</label>
-        <label><input type="radio" name="senior_ok" value="no"> No</label>
+        <label><input type="radio" name="dog_q1" value="Y" required> Yes</label>
+        <label><input type="radio" name="dog_q1" value="N"> No</label>
       </div>
     </div>
-
-    <div class="question">
-      <label>Do you live in a home with outdoor space?</label>
+    <div class="question dog-question conditional">
+      <label>Do you prefer a dog breed that is known to be particularly loyal and closely bond with family
+        members?</label>
       <div class="options">
-        <label><input type="radio" name="outdoor_space" value="yes" required> Yes</label>
-        <label><input type="radio" name="outdoor_space" value="no"> No</label>
+        <label><input type="radio" name="dog_q2" value="Y" required> Yes</label>
+        <label><input type="radio" name="dog_q2" value="N"> No</label>
+      </div>
+    </div>
+    <div class="question dog-question conditional">
+      <label>Are you able to commit to providing consistent training and mental stimulation for your dog?</label>
+      <div class="options">
+        <label><input type="radio" name="dog_q3" value="Y" required> Yes</label>
+        <label><input type="radio" name="dog_q3" value="N"> No</label>
+      </div>
+    </div>
+    <div class="question dog-question conditional">
+      <label>Are you comfortable living with a dog that may bark frequently or be very vocal?</label>
+      <div class="options">
+        <label><input type="radio" name="dog_q4" value="Y" required> Yes</label>
+        <label><input type="radio" name="dog_q4" value="N"> No</label>
+      </div>
+    </div>
+    <div class="question dog-question conditional">
+      <label>Would you prefer a dog that is highly affectionate and enjoys close companionship?</label>
+      <div class="options">
+        <label><input type="radio" name="dog_q5" value="Y" required> Yes</label>
+        <label><input type="radio" name="dog_q5" value="N"> No</label>
+      </div>
+    </div>
+    <div class="question dog-question conditional">
+      <label>Are you able to provide ample space for a dog that may be larger in size or more active indoors?</label>
+      <div class="options">
+        <label><input type="radio" name="dog_q6" value="Y" required> Yes</label>
+        <label><input type="radio" name="dog_q6" value="N"> No</label>
       </div>
     </div>
 
     <input type="submit" value="Submit Survey">
-</form>
-  <p style="text-align: center; margin-top: 2rem;"><a href="/" style="color: #4D3C3C; text-decoration: underline;">← Back to Home</a></p>
+
+  </form>
 </body>
+
 </html>

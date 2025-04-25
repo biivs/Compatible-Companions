@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Survey Result</title>
@@ -12,9 +13,11 @@
       margin: auto;
       padding: 2rem;
     }
+
     h1 {
       text-align: center;
     }
+
     .result {
       border: 2px solid #E0C3A6;
       background-color: #F9E0BB;
@@ -22,6 +25,17 @@
       border-radius: 10px;
       margin-top: 2rem;
     }
+
+    h2 {
+      margin-top: 1.5rem;
+      color: #4D3C3C;
+      text-align: center;
+    }
+
+    p {
+      font-size: 1.1rem;
+    }
+
     a {
       display: block;
       margin-top: 2rem;
@@ -31,17 +45,22 @@
     }
   </style>
 </head>
+
 <body>
   <h1>✨ Your Recommended Companion</h1>
   <div class="result">
-    <p>{{ message }}</p>
+    <h2>{{ breed }}</h2> <!-- new breed output -->
     {% if summary %}
-      <div style="margin-top: 1.5rem; padding: 1rem; background-color: #F9E0BB; border: 1px solid #4D3C3C; border-radius: 8px;">
-        <h2 style="margin-bottom: 0.5rem;">🐾 Breed Trait Summary</h2>
-        <p>{{ summary }}</p>
-      </div>
+    <div
+      style="margin-top: 1rem; padding: 1rem; background-color: #F9E0BB; border: 1px solid #4D3C3C; border-radius: 8px;">
+      <h3 style="margin-bottom: 0.5rem;">🐾 Breed Trait Summary</h3>
+      <p>{{ summary }}</p>
+    </div>
+    {% else %}
+    <p>No summary found for this breed.</p>
     {% endif %}
   </div>
   <a href="/">← Back to Home</a>
 </body>
+
 </html>
