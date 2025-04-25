@@ -8,10 +8,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Comfortaa">
+
+
+
   <style>
     body {
       margin: 0;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Roboto', sans-serif;
       background-color: #5e4949;
       color: #5e4949;
     }
@@ -23,7 +30,7 @@
     }
 
     .header h1 {
-      font-family: 'Kristen ITC';
+      font-family: 'Comfortaa';
       color: #FFF4E3;
       font-size: 3rem;
       text-transform: uppercase;
@@ -42,7 +49,7 @@
     .search-container {
       background-color: #FFF9F1;
       /* cream */
-      padding: 10px;
+      padding: 30px;
       text-align: center;
       margin: 20px auto;
 
@@ -54,7 +61,7 @@
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
-      font-family: 'Montserrat';
+      font-family: 'Comfortaa';
       font-weight: 100;
       font-size-adjust: 0.6;
     }
@@ -65,9 +72,18 @@
       border: 1px solid #ccc;
       border-radius: 5px;
       outline: none;
-      font-family: 'Montserrat';
+      font-family: 'Poppins';
       font-weight: 100;
       font-size-adjust: 0.5;
+    }
+
+    .input-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
     }
 
     .results-container {
@@ -125,9 +141,19 @@
     }
 
     .animal-name {
+      font-family: 'Comfortaa';
       font-size: 1.8rem;
       margin-bottom: 15px;
       color: #4D3C3C;
+    }
+
+    .animal-description {
+      font-family: 'Comfortaa', sans-serif;
+      /* or Poppins, Comfortaa, etc. */
+      font-size: 1rem;
+      font-weight: 400;
+      color: #4D3C3C;
+      line-height: 1.5;
     }
 
     .animal-status a:hover {
@@ -159,7 +185,7 @@
     }
 
     .animal-relevance {
-      color: #5C3A2B;
+      color: #7e2d0b;
       font-weight: bold;
     }
 
@@ -193,7 +219,7 @@
     }
 
     .survey-button {
-      margin-top: 10px;
+      margin-top: 20px;
       padding: 10px 20px;
       background-color: #FFF4E3;
       color: #4D3C3C;
@@ -238,11 +264,13 @@
   </div>
   <!-- Search Controls -->
   <div class="search-container">
-    <input type="text" id="zip-code-input" placeholder="Enter your zip code..."
-      style="margin-bottom: 10px; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
-    <input type="text" id="filter-text-val"
-      placeholder="Search for an ideal future companion... Press enter when you're done!🐾"
-      onkeyup="if (event.key === 'Enter') filterText();">
+    <div class="input-stack">
+      <input type="text" id="zip-code-input" placeholder="Enter your zip code..."
+        style="margin-bottom: 10px; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+      <input type="text" id="filter-text-val"
+        placeholder="Search for an ideal future companion... Press enter when you're done!🐾"
+        onkeyup="if (event.key === 'Enter') filterText();">
+    </div>
     <br> <br>
     <select id="gender-filter">
       <option value="">Any Gender</option>
