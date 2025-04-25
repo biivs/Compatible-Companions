@@ -94,23 +94,23 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default_secret_key")
 CORS(app)
 
-def get_best_breed_match(prompt, type_):
-    model = genai.GenerativeModel("models/gemini-1.5-flash")
-    if type_.lower() == "dog":
-        breed_data = dog_breed_data
-    else:
-        breed_data = cat_breed_data
+# def get_best_breed_match(prompt, type_):
+#     model = genai.GenerativeModel("models/gemini-1.5-flash")
+#     if type_.lower() == "dog":
+#         breed_data = dog_breed_data
+#     else:
+#         breed_data = cat_breed_data
 
-    full_prompt = (
-        f"You are a {type_} breed expert.\n"
-        "Based on the following user preferences, choose ONE breed from this list that best matches.\n"
-        f"{json.dumps(breed_data, indent=2)}\n\n"
-        f"User responses:\n{prompt}\n\n"
-        "Respond with ONLY the breed name, no punctuation or extra text."
-    )
+#     full_prompt = (
+#         f"You are a {type_} breed expert.\n"
+#         "Based on the following user preferences, choose ONE breed from this list that best matches.\n"
+#         f"{json.dumps(breed_data, indent=2)}\n\n"
+#         f"User responses:\n{prompt}\n\n"
+#         "Respond with ONLY the breed name, no punctuation or extra text."
+#     )
 
-    response = model.generate_content(full_prompt)
-    return response.text.strip()
+#     response = model.generate_content(full_prompt)
+#     return response.text.strip()
 
 # # Sample search using json with pandas
 # def json_search(query):
