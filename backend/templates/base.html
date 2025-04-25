@@ -12,12 +12,12 @@
     body {
       margin: 0;
       font-family: 'Montserrat', sans-serif;
-      background-color: #4D3C3C;
-      color: #333;
+      background-color: #5e4949;
+      color: #5e4949;
     }
 
     .header {
-      background-color: #4D3C3C;
+      background-color: #5e4949;
       padding: 60px 20px 40px;
       text-align: center;
     }
@@ -143,12 +143,19 @@
       text-align: center;
     }
 
-    .similarity-chart {
+    /* .similarity-chart {
       max-width: 100%;
       height: auto;
       max-height: 300px;
       display: block;
       margin: 0 auto;
+    } */
+    .similarity-chart {
+      max-width: 600px;
+      width: 90%;
+      height: auto;
+      display: block;
+      margin: 20px auto;
     }
 
     .animal-relevance {
@@ -255,7 +262,7 @@
       <option value="Senior">Senior</option>
     </select>
     <br>
-    <button onclick="window.open('/survey', '_blank')" class="survey-button">Take Compatibility Survey</button>
+    <button onclick="window.open('/survey', '_blank')" class="survey-button">Take Compatibility Survey🐾</button>
   </div>
 
   {% if recommended_breed %}
@@ -383,7 +390,7 @@
             img.src = URL.createObjectURL(blob);
             img.alt = "Similarity chart";
             img.className = "similarity-chart";
-            img.style.maxWidth = '400px';
+            img.style.maxWidth = '600px';
             container.innerHTML = '';
             container.appendChild(img);
           })
